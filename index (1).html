@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Treeline Hunt Kit</title>
+<meta name="theme-color" content="#1f3a2b">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a trusted outfitter's field guide: plain words, steady confidence
+   IDEA: the brass-and-green look of a classic sporting-goods catalog and a printed range card
+   PICTURE: the green verdict band, the 24-hour moon dial, the scope view with a deer at distance
+   COLOUR and TYPE: hunting green, brass, oxblood, warm paper; blaze only for "now" and safety. Oswald + Source Sans 3
+   LAYOUT: one column on phones, verdict first, tab bar pinned to the bottom */
+:root{color-scheme:light dark;
+--bg:light-dark(#f7f3ea,#0e1611);--panel:light-dark(#fffdf8,#16211a);--soft:light-dark(#f0eadc,#1c2a21);
+--ink:light-dark(#1b2620,#ece7da);--mute:light-dark(#5e6a62,#9ba79f);--line:light-dark(#e2dbca,#27362c);
+--green:light-dark(#1f3a2b,#0a130d);--green2:light-dark(#2f5a43,#5f9275);--gink:#f4efe3;
+--brass:light-dark(#a8781f,#d8b46a);--brassbg:light-dark(#b8862f,#d8b46a);--brassink:light-dark(#fff,#1b1708);
+--ox:light-dark(#7a3b2e,#e08a74);--blaze:#ff6b1a;--deer:light-dark(#8a6a43,#a98559);
+--moonLit:light-dark(#efe6cc,#efe6cc);--moonDark:light-dark(#33473b,#25352b);--paper:light-dark(#fbf7ec,#e9e2cf)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Source Sans 3",system-ui,sans-serif;overflow-x:clip;padding-bottom:92px}
+h1,h2,h3,.num,.os{font-family:Oswald,"Arial Narrow",sans-serif;font-weight:600;line-height:1.08;margin:0;letter-spacing:.2px}
+h1{font-size:clamp(32px,8vw,48px);text-wrap:balance}h2{font-size:24px}h3{font-size:19px;font-weight:500}
+a{color:var(--brass)}
+.top{background:var(--green);color:var(--gink);padding:12px max(4vw,16px);display:flex;align-items:center;gap:10px}
+.top b{font:600 22px Oswald,"Arial Narrow",sans-serif;color:#d8b46a;letter-spacing:.6px}.top .pill{margin-left:auto}
+.pill{font-size:13px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.1);white-space:nowrap;color:var(--gink)}
+.wrap{max-width:980px;margin:0 auto;padding:16px max(4vw,16px)}
+.band{background:var(--green);color:var(--gink);padding:6px 0 22px}
+.band .wrap{padding-top:10px;padding-bottom:0}.band .muted{color:#b9c4bb}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin:0 0 14px}
+.card>h3:first-child,.card>.hd:first-child{margin-bottom:12px}
+.hd{display:flex;align-items:center;gap:8px;justify-content:space-between}.hd h3{display:flex;align-items:center;gap:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.muted{color:var(--mute)}.small{font-size:15px}.tiny{font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+.chips{overflow-x:auto;display:flex;gap:8px;padding:2px 0 4px;scrollbar-width:none}.chips>*{flex:none}
+button{font:600 16px "Source Sans 3",sans-serif;min-height:46px;padding:0 18px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+button.pri{background:var(--green);color:var(--gink);border-color:var(--green)}
+button.brass{background:var(--brassbg);color:var(--brassink);border-color:var(--brassbg)}
+button.on{background:var(--green2);color:#fff;border-color:var(--green2)}
+button.ghost{background:transparent}button.wide{width:100%}
+.band button{background:rgba(255,255,255,.08);color:var(--gink);border-color:rgba(255,255,255,.18)}.band button.on{background:#d8b46a;color:#1b1708;border-color:#d8b46a}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,svg:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.q{min-height:30px;width:30px;padding:0;border-radius:50%;font:700 15px "Source Sans 3";color:var(--brass);border:1.5px solid var(--brass);background:transparent;flex:none;position:relative}
+.q::after{content:"";position:absolute;inset:-8px}
+label{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;margin:14px 0 6px}
+input,select,textarea{font:17px "Source Sans 3",sans-serif;width:100%;min-height:48px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:var(--ink)}
+textarea{min-height:90px}.help{font-size:14px;color:var(--mute);margin-top:4px}
+input[type=range]{padding:0;min-height:44px;background:transparent;border:0;accent-color:var(--brassbg)}
+.f2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px}
+.verdict{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:end;margin-top:14px}
+.badge-score{background:#d8b46a;color:#1b1708;border-radius:16px;padding:10px 16px;text-align:center;min-width:96px}
+.badge-score .num{font-size:46px}.badge-score span{font-size:13px;display:block;font-weight:600}
+.sub{display:flex;gap:8px 18px;flex-wrap:wrap;margin-top:10px;font-size:16px}.sub span{display:inline-flex;gap:6px;align-items:center}
+.fig{position:relative;height:190px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--mute);margin-top:8px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}.kv dt{color:var(--mute);display:flex;gap:6px;align-items:center}.kv dd{margin:0;text-align:right;font-weight:600;white-space:nowrap}
+.meter{height:8px;border-radius:9px;background:var(--line);overflow:hidden}.meter i{display:block;height:100%;background:var(--green2);transition:width .5s}
+.why{display:grid;grid-template-columns:auto minmax(0,1fr) 2.4em;gap:8px 12px;align-items:center;font-size:15px}
+.why .ic{color:var(--green2)}
+.big{font:600 clamp(32px,9vw,52px) Oswald,"Arial Narrow",sans-serif;line-height:1}
+.dial2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px}
+.turretbox{background:var(--green);color:var(--gink);border-radius:16px;padding:14px;text-align:center}
+.turretbox svg{width:130px;height:130px;display:block;margin:6px auto}
+.tg{transition:transform 1.1s cubic-bezier(.3,.7,.2,1)}
+.holes{transition:transform 1.1s cubic-bezier(.3,.7,.2,1)}
+.badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--brassbg);color:var(--brassink);white-space:nowrap}
+.load{border-top:1px solid var(--line);padding:14px 0}.load:first-of-type{border-top:0}
+table{border-collapse:collapse;width:100%;font-size:15px}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{font-size:13px;color:var(--mute);font-weight:600}td:first-child,th:first-child{text-align:left}.tablewrap{overflow-x:auto}
+tr.hl td{background:var(--soft)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:1100}
+nav.tabs a{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:64px;color:var(--mute);text-decoration:none;font-size:12px;font-weight:600;gap:3px}
+nav.tabs a.cur{color:var(--green2)}nav.tabs a.cur svg{color:var(--brass)}
+.sheet{position:fixed;inset:0;background:rgba(10,20,14,.5);display:flex;align-items:flex-end;justify-content:center;z-index:2000}
+.sheet>div{background:var(--panel);width:min(640px,100%);max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:20px 20px 30px}
+.warn{border-left:4px solid var(--ox);padding:10px 14px;background:var(--soft);font-size:15px}
+.safety{border-left-color:var(--blaze)}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;z-index:2100}
+.scopewrap{display:grid;grid-template-columns:minmax(0,1fr);justify-items:center}
+#scope{width:min(100%,340px);aspect-ratio:1;display:block}
+#tgt{width:min(100%,360px);aspect-ratio:1;display:block;margin:0 auto;touch-action:manipulation;cursor:crosshair}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}.seg button{border:0;border-radius:0;min-height:42px}
+.coach{position:fixed;left:12px;right:12px;bottom:84px;z-index:1500;background:var(--green);color:var(--gink);border-radius:16px;padding:16px;max-width:560px;margin:0 auto}
+.coach button{background:#d8b46a;color:#1b1708;border-color:#d8b46a}.coach .ghost{background:transparent;color:var(--gink);border-color:rgba(255,255,255,.3)}
+.spot{position:relative;z-index:1400;box-shadow:0 0 0 4px #d8b46a,0 0 0 2000px rgba(10,20,14,.45);border-radius:14px}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--brassbg)}
+.choice{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.choice button{min-height:64px;flex-direction:column;gap:2px}
+.pop{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{from{transform:scale(0)}}
+body.night{--bg:#0a0f0b;--panel:#111a13;--ink:#f1ecdf;--mute:#a7b2a9;--line:#24322a;--soft:#162019;background:#0a0f0b;color:#f1ecdf}
+body.night .top{display:none}
+.mapbox{position:relative;height:62vh;min-height:360px;border-radius:16px;overflow:hidden;border:1px solid var(--line);isolation:isolate;background:var(--soft)}
+#map{position:absolute;inset:0}.cross{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px;z-index:800;pointer-events:none}
+.pinwrap{background:none;border:0}.pin{width:22px;height:22px;border-radius:50%;background:#1f3a2b;border:3px solid #d8b46a;box-shadow:0 1px 5px rgba(0,0,0,.6)}.pin.sel{background:#ff6b1a}
+.pinlab{position:absolute;left:26px;top:1px;white-space:nowrap;font:600 14px "Source Sans 3",sans-serif;color:#fff;text-shadow:0 1px 3px #000,0 0 2px #000}
+.mlabel{background:#1f3a2b;color:#f4efe3;border:0;font:600 15px "Source Sans 3",sans-serif;border-radius:8px;padding:4px 8px}.mlabel::before{display:none}
+.leaflet-container{font-family:"Source Sans 3",sans-serif}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+@media(max-width:600px){.verdict{grid-template-columns:1fr}.badge-score{display:flex;align-items:center;gap:12px;text-align:left;justify-self:start}.badge-score .num{font-size:40px}}
+@media(prefers-reduced-motion:reduce){.tg,.holes,.meter i{transition:none!important}.pop{animation:none}}
+</style></head><body>
+<header class="top"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 14h4.5L4 21h16l-4.5-7H20z" fill="#d8b46a"/></svg><b>Treeline</b><span class="pill" id="savePill">Starting…</span><a href="#setup" aria-label="Setup" style="color:#d8b46a;display:flex;padding:8px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></a></header>
+<main id="view"></main>
+<nav class="tabs" id="tabs"></nav>
+<script>
+/* =====================================================================
+   TREELINE HUNT KIT — HOW THIS FILE IS ORGANIZED
+   1. CONFIG ........ knobs you can safely change: species, score weights,
+                      form fields, help-tip wording, guided-tour steps
+   2. CORE .......... pure math: sun/moon, solunar, hunt score, ballistics
+   3. STORE ......... saving (your Claude account, else this phone)
+   4. WEATHER ....... live forecast (Open-Meteo) with manual fallback
+   5. DRAWINGS ...... moon dial, turret, target, scope view, deer
+   6. SCREENS ....... one object per tab. Add a tab = add one object.
+   ===================================================================== */
+
+/* ---------- 1. CONFIG ---------- */
+const CONFIG = {
+  defaultLocation: {name:'Brandon, MS', lat:32.2732, lon:-89.9859},
+  legalLightMin: 30,                    // minutes before sunrise / after sunset
+  solunar: {majorMin:60, minorMin:30},  // half-width of each window (major = 2 h total)
+  clicksPerTurn: 60,
+  // Map styles. Free public sources, fine for personal use; switch to a paid provider if the app goes public.
+  maps: {
+    sat:   {label:'Satellite', url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', opt:{maxZoom:19, attribution:'Imagery © Esri, Maxar, Earthstar Geographics'}},
+    topo:  {label:'Topo',      url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', opt:{maxZoom:17, subdomains:'abc', attribution:'© OpenStreetMap contributors, SRTM · style © OpenTopoMap (CC-BY-SA)'}},
+    street:{label:'Street',    url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png', opt:{maxZoom:19, attribution:'© OpenStreetMap contributors'}}
+  },
+  scentConeMeters: 250,
+  fpsPerInch: 25,                       // velocity lost per inch of barrel shorter than the box's test barrel (rule of thumb)                    // only changes how the turret drawing spins
+  // Each species = how much each factor matters (weights add to 1).
+  species: {
+    deer:   {label:'Whitetail deer', w:{light:.25,solunar:.20,pressure:.20,wind:.15,temp:.15,rain:.05}, windCurve:'calm'},
+    turkey: {label:'Turkey',         w:{light:.35,solunar:.05,pressure:.10,wind:.25,temp:.05,rain:.20}, windCurve:'calm', morning:true},
+    hogs:   {label:'Hogs',           w:{light:.30,solunar:.15,pressure:.15,wind:.15,temp:.20,rain:.05}, windCurve:'calm', night:true},
+    ducks:  {label:'Ducks',          w:{light:.30,solunar:.05,pressure:.15,wind:.30,temp:.15,rain:.05}, windCurve:'windy'}
+  },
+  // Form fields. Add a line here and it shows up in the edit form automatically.
+  // tip: the name of a help tip below, shown as a "?" button next to the field.
+  rifleFields: [
+    {k:'name',label:'Name',type:'text'},
+    {k:'caliber',label:'Caliber',type:'text'},
+    {k:'sightIn',label:'Scope height over bore (in)',type:'number',step:.05,tip:'sightIn'},
+    {k:'clickUnit',label:'Turret unit',type:'select',opts:['MOA','MIL'],tip:'moa'},
+    {k:'clickValue',label:'Value per click',type:'number',step:.025,tip:'clicks',help:'1/4 MOA = 0.25 · 1/8 MOA = 0.125 · 0.1 MIL = 0.1'},
+    {k:'zeroYd',label:'Zero distance (yd)',type:'number',step:5,tip:'zero'},
+    {k:'barrelIn',label:'Barrel length (in)',type:'number',step:.5,tip:'barrel'},
+    {k:'twist',label:'Barrel twist',type:'text'},
+    {k:'notes',label:'Notes',type:'textarea'}
+  ],
+  loadFields: [
+    {k:'name',label:'Name',type:'text'},
+    {k:'kind',label:'Type',type:'select',opts:['Factory','Handload']},
+    {k:'grains',label:'Bullet weight (gr)',type:'number',step:1},
+    {k:'bc',label:'Ballistic coefficient (BC)',type:'number',step:.001,tip:'bc'},
+    {k:'model',label:'BC type',type:'select',opts:['G1','G7'],help:'Use G1 unless the box says G7.'},
+    {k:'mv',label:'Box velocity (fps)',type:'number',step:5,tip:'mv'},
+    {k:'testBarrel',label:'Box test-barrel length (in)',type:'number',step:.5,help:'Often printed near the velocity. 24 is common.'},
+    {k:'mvChrono',label:'Chronograph velocity (fps), if you have it',type:'number',step:5,tip:'chrono'},
+    {k:'powder',label:'Powder',type:'text',when:l=>l.kind==='Handload'},
+    {k:'charge',label:'Charge (gr)',type:'text',when:l=>l.kind==='Handload',help:'Record only data from a published load manual.'},
+    {k:'primer',label:'Primer',type:'text',when:l=>l.kind==='Handload'},
+    {k:'coal',label:'Overall length (in)',type:'text',when:l=>l.kind==='Handload'},
+    {k:'notes',label:'Notes',type:'textarea'}
+  ]
+};
+
+/* Help tips: the "?" buttons. Edit the words freely. pic = which drawing to show. */
+const TIPS = {
+  score:{t:'Hunt score',b:'A 0–100 blend of light, solunar timing, barometer, wind, temperature trend and rain, weighted for the animal you picked. It comes from common hunting wisdom, not lab science.'},
+  solunar:{t:'Solunar periods',b:'John Alden Knight\'s 1926 theory: animals move more when the moon is overhead or underfoot (major periods, about 2 hours) and when it rises or sets (minor, about 1 hour). The evidence is mixed, but a period that lands on dawn or dusk is worth planning around.',pic:'dial'},
+  legal:{t:'Legal shooting light',b:'Most states allow shooting from about 30 minutes before sunrise to 30 minutes after sunset, but rules differ by state and species. Set yours in Setup and check your state\'s regulations.'},
+  pressure:{t:'Barometer',b:'Many hunters see animals feed ahead of a falling barometer (a front coming in) and move again as it rises after the front passes.'},
+  bc:{t:'Ballistic coefficient (BC)',b:'How well a bullet slips through the air. A higher number keeps its speed better and drops less. It\'s printed on most ammo boxes or the maker\'s website.',pic:'bc'},
+  moa:{t:'MOA and MIL',b:'Two ways to measure small angles. 1 MOA is about 1 inch at 100 yards and 2 inches at 200. 1 MIL is 3.6 inches at 100 yards. Your turret caps say which your scope uses.',pic:'moa'},
+  clicks:{t:'Turret clicks',b:'Each click moves where the bullet lands by a small, fixed amount, usually 1/4 MOA (about 1/4 inch at 100 yards). Turn toward the arrow marked UP to hit higher, or R to hit further right.',pic:'turret'},
+  zero:{t:'Zero distance',b:'The distance where the bullet lands exactly on the crosshair. 100 yards is the most common deer-rifle zero.'},
+  sightIn:{t:'Scope height',b:'From the center of the barrel to the center of the scope. Measure it, or use 1.5 inches for most hunting rifles.'},
+  hold:{t:'Dial or hold',b:'Dial means turning the turret so the crosshair is dead-on at that distance. Hold means leaving the turret alone and aiming higher by the amount shown. When an animal is in front of you, holding is usually faster.'},
+  mv:{t:'Muzzle velocity',b:'How fast the bullet leaves the barrel. The box number comes from a test barrel that may be longer than yours, so your real speed is often a bit lower. A chronograph tells you exactly.'},
+  barrel:{t:'Barrel length',b:'A shorter barrel usually means a slower bullet than the box says. Treeline subtracts about 25 fps for every inch your barrel is shorter than the box\'s test barrel. That\'s a rule of thumb; truing or a chronograph beats it.'},
+  chrono:{t:'Chronograph',b:'A chronograph measures your real bullet speed. If you enter it, Treeline uses it instead of the box number.'},
+  truing:{t:'Truing',b:'Shoot at a long distance (200 to 300 yards), measure how far above or below the bullseye the group landed while aiming dead-on, and enter it. Treeline works backward to find the bullet speed that matches what really happened. This fixes every number in the app for that load.'},
+  scent:{t:'Wind and scent',b:'Wind is named for where it comes from: a north wind blows from the north toward the south. Your scent drifts downwind, so a stand is good when animals usually approach from upwind of you.'},
+  stand:{t:'Good winds',b:'Pick the wind directions that let you hunt this stand without your scent blowing toward where animals come from. Forecast then tells you which stand suits the day\'s wind.'},
+  mag:{t:'Scope power',b:'The scope view uses the field of view of a typical hunting scope at that power. Your scope may show slightly more or less.'}
+};
+
+/* Guided tours: shown the first time you open each tab. sel = the part to point at. */
+const TOURS = {
+  forecast:[{sel:'#verdict',text:'Start here. This is today\'s call: how good it looks, when to be in the stand, and the best two hours.'},
+            {sel:'#stripcard',text:'Each bar is one hour. Taller is better. Brass bars are the best window. Tap any bar to see why it scored that way.'},
+            {sel:'#dialcard',text:'The moon dial shows the whole day like a clock. Brass arcs are the solunar feeding periods; the lighter band is daylight.'}],
+  locker:[{sel:'.card',text:'Your rifles live here. Each rifle holds its loads. The scope is sighted in with the load marked Zero load.'}],
+  range:[{sel:'#scopecard',text:'Slide the distance and watch the deer move away. The crosshair shows where to aim so the bullet lands in the vitals.'},
+         {sel:'#trajcard',text:'This is the bullet\'s path compared to your crosshair. Tap Fire to watch it fly.'}],
+  zero:[{sel:'#tgtcard',text:'Shoot three shots, then tap where each one hit on this target. Your real target\'s grid matches the 1-inch squares.'},
+        {sel:'#turrets',text:'Tap Show me and the turrets spin the exact number of clicks while the group slides onto the bullseye.'}],
+  stands:[{sel:'#mapcard',text:'Your stands on the map. Press and hold anywhere (or line up the crosshair and tap Add stand) to drop a new one. Tap a pin to see its wind and scent cone.'},
+          {sel:'#standlist',text:'Each stand shows its wind diagram: the arrow is the wind, the red cone is where your scent drifts, and the brass marks are the winds you picked as good.'}],
+  journal:[{sel:'#logbtn',text:'Log every sit, even the empty ones. After a few, Treeline shows what conditions actually produce deer at your spots.'}],
+  setup:[]
+};
+</script>
+<script>
+/* ---------- 2. CORE (pure math — no screen code here) ---------- */
+/*CORE-START*/
+const DEG = Math.PI/180, DAY = 864e5, HOUR = 36e5;
+
+/* Sun & moon positions (after the well-known SunCalc formulas). */
+const Astro = (() => {
+  const e = DEG*23.4397;
+  const toDays = t => t/DAY - 0.5 + 2440588 - 2451545;
+  const ra  = (l,b) => Math.atan2(Math.sin(l)*Math.cos(e) - Math.tan(b)*Math.sin(e), Math.cos(l));
+  const dec = (l,b) => Math.asin(Math.sin(b)*Math.cos(e) + Math.cos(b)*Math.sin(e)*Math.sin(l));
+  const alt = (H,phi,d) => Math.asin(Math.sin(phi)*Math.sin(d) + Math.cos(phi)*Math.cos(d)*Math.cos(H));
+  const sidereal = (d,lw) => DEG*(280.16 + 360.9856235*d) - lw;
+  const wrap = a => { a = (a+Math.PI) % (2*Math.PI); if (a<0) a += 2*Math.PI; return a - Math.PI; };
+  function sun(d){ const M=DEG*(357.5291+0.98560028*d);
+    const L=M+DEG*(1.9148*Math.sin(M)+0.02*Math.sin(2*M)+0.0003*Math.sin(3*M))+DEG*102.9372+Math.PI;
+    return {dec:dec(L,0), ra:ra(L,0)}; }
+  function moon(d){ const L=DEG*(218.316+13.176396*d), M=DEG*(134.963+13.064993*d), F=DEG*(93.272+13.229350*d);
+    const l=L+DEG*6.289*Math.sin(M), b=DEG*5.128*Math.sin(F);
+    return {ra:ra(l,b), dec:dec(l,b), dist:385001-20905*Math.cos(M)}; }
+  function pos(body,t,lat,lon){ const d=toDays(t), c=body==='sun'?sun(d):moon(d);
+    const H=sidereal(d,-lon*DEG)-c.ra; return {alt:alt(H,lat*DEG,c.dec), H:wrap(H)}; }
+  function illum(t){ const d=toDays(t), s=sun(d), m=moon(d), sd=149598000;
+    const phi=Math.acos(Math.sin(s.dec)*Math.sin(m.dec)+Math.cos(s.dec)*Math.cos(m.dec)*Math.cos(s.ra-m.ra));
+    const inc=Math.atan2(sd*Math.sin(phi), m.dist-sd*Math.cos(phi));
+    const ang=Math.atan2(Math.cos(s.dec)*Math.sin(s.ra-m.ra), Math.sin(s.dec)*Math.cos(m.dec)-Math.cos(s.dec)*Math.sin(m.dec)*Math.cos(s.ra-m.ra));
+    return {fraction:(1+Math.cos(inc))/2, phase:0.5+0.5*inc*(ang<0?-1:1)/Math.PI}; }
+  // Walk through time in 2-minute steps and note rises, sets, overhead and underfoot moments.
+  function scan(body,from,to,lat,lon,h0){
+    const out=[], step=12e4; let p=pos(body,from,lat,lon), pt=from;
+    for (let t=from+step; t<=to; t+=step){
+      const c=pos(body,t,lat,lon), a0=p.alt-h0, a1=c.alt-h0;
+      if (a0<0 && a1>=0) out.push({type:'rise', t:pt+step*(-a0/(a1-a0))});
+      if (a0>=0 && a1<0) out.push({type:'set',  t:pt+step*(a0/(a0-a1))});
+      if (p.H<0 && c.H>=0 && p.H>-1) out.push({type:'over', t:pt+step*(-p.H/(c.H-p.H))});
+      if (p.H>2 && c.H<-2) out.push({type:'under', t:pt+step/2});
+      p=c; pt=t;
+    }
+    return out;
+  }
+  function phaseName(p){
+    const n=[[.03,'New moon'],[.22,'Waxing crescent'],[.28,'First quarter'],[.47,'Waxing gibbous'],[.53,'Full moon'],[.72,'Waning gibbous'],[.78,'Last quarter'],[.97,'Waning crescent'],[1.01,'New moon']];
+    return n.find(x=>p<x[0])[1];
+  }
+  // Everything for one local day that starts at d0 (local midnight, in ms).
+  function day(d0,lat,lon,legalMin,cfg){
+    const end=d0+DAY, sunEv=scan('sun',d0,end,lat,lon,-0.833*DEG);
+    const sunrise=(sunEv.find(x=>x.type==='rise')||{}).t ?? null, sunset=(sunEv.find(x=>x.type==='set')||{}).t ?? null;
+    const mEv=scan('moon',d0-3*HOUR,end+3*HOUR,lat,lon,0.125*DEG);
+    const periods=[];
+    for (const ev of mEv){
+      const major = ev.type==='over'||ev.type==='under', half=(major?cfg.majorMin:cfg.minorMin)*6e4;
+      const p={kind:major?'major':'minor', cause:ev.type, t:ev.t, start:ev.t-half, end:ev.t+half};
+      if (p.end>d0 && p.start<end) periods.push(p);
+    }
+    periods.sort((a,b)=>a.start-b.start);
+    const moonEv=mEv.filter(x=>x.t>=d0&&x.t<end);
+    const il=illum(d0+12*HOUR);
+    const pScore=Math.max(0,1-Math.min(Math.abs(il.phase),Math.abs(il.phase-.5),Math.abs(il.phase-1))/.25);
+    const overlap=periods.some(p=>[sunrise,sunset].some(s=>s!=null && p.start-HOUR<s && p.end+HOUR>s));
+    const rating=Math.min(4,1+Math.round(2*pScore)+(overlap?1:0));
+    return {d0, sunrise, sunset,
+      legalStart: sunrise!=null ? sunrise-legalMin*6e4 : null,
+      legalEnd:   sunset!=null  ? sunset+legalMin*6e4  : null,
+      periods, moonEv, moon:{...il, name:phaseName(il.phase)}, rating, overlap};
+  }
+  return {pos, illum, scan, day, phaseName};
+})();
+
+/* Hunt score: each factor returns a value 0..1 and a plain-English reason.
+   These are common hunting rules of thumb, not proven science — tune them freely. */
+const Factors = {
+  light(c,sp){
+    const {t,day}=c;
+    if (day.sunrise==null||day.sunset==null) return {v:.5,why:'No sunrise data'};
+    const legal = t>=day.legalStart && t<=day.legalEnd;
+    if (!legal) return sp.night ? {v:.8,why:'Night — hogs move after dark'} : {v:0,why:'Outside legal shooting light'};
+    const dm=Math.min(Math.abs(t-day.sunrise),Math.abs(t-day.sunset))/6e4;
+    if (sp.morning){ if (t>=day.legalStart && t<=day.sunrise+3*HOUR) return {v:1,why:'Morning — gobbling and strutting time'};
+      return {v:.35,why:'Afternoon — birds are quieter'}; }
+    if (sp.night && dm>120) return {v:.2,why:'Midday — hogs bed down in heat'};
+    if (dm<=60) return {v:1,why:'Within an hour of sunrise or sunset'};
+    if (dm<=120) return {v:.7,why:'Close to dawn or dusk'};
+    return {v:.3,why:'Midday lull'};
+  },
+  solunar(c){
+    const {t,day}=c, inP=day.periods.find(p=>t>=p.start&&t<=p.end);
+    if (inP) return inP.kind==='major' ? {v:1,why:'Inside a major solunar period'} : {v:.75,why:'Inside a minor solunar period'};
+    if (day.periods.some(p=>t>=p.start-18e5&&t<=p.end+18e5)) return {v:.4,why:'Near a solunar period'};
+    return {v:.1,why:'Between solunar periods'};
+  },
+  pressure(c){
+    const d=c.pTrend, p=c.p;
+    if (d==null) return {v:.5,why:'No pressure data'};
+    if (d<=-3) return {v:.45,why:'Pressure falling fast — storm close'};
+    if (d<=-.6) return {v:.95,why:'Pressure falling — front coming, animals feed'};
+    if (d>=.6) return {v:.8,why:'Pressure rising — clearing after a front'};
+    return p!=null&&p>=1020 ? {v:.7,why:'Steady high pressure'} : {v:.55,why:'Steady pressure'};
+  },
+  wind(c,sp){
+    const w=c.wind; if (w==null) return {v:.5,why:'No wind data'};
+    if (sp.windCurve==='windy'){
+      if (w<5) return {v:.3,why:'Calm — ducks sit tight'}; if (w<10) return {v:.6,why:'Light breeze'};
+      if (w<=20) return {v:1,why:'Good wind keeps birds flying'}; if (w<=28) return {v:.7,why:'Strong wind'};
+      return {v:.4,why:'Very strong wind'};
+    }
+    if (w<2) return {v:.75,why:'Dead calm — sound carries'}; if (w<=10) return {v:1,why:'Light, steady wind'};
+    if (w<=15) return {v:.65,why:'Breezy'}; if (w<=20) return {v:.4,why:'Windy — animals get jumpy'};
+    return {v:.15,why:'High wind — animals hole up'};
+  },
+  temp(c){
+    const d=c.tDelta; if (d==null) return {v:.55,why:'No temperature trend'};
+    if (d<=-8) return {v:1,why:'Much colder than yesterday'}; if (d<=-3) return {v:.85,why:'Cooler than yesterday'};
+    if (d<3) return {v:.6,why:'About the same as yesterday'}; if (d<8) return {v:.4,why:'Warmer than yesterday'};
+    return {v:.25,why:'Much warmer than yesterday'};
+  },
+  rain(c){
+    const r=c.rain, pr=c.prob;
+    if (r==null&&pr==null) return {v:.7,why:'No rain data'};
+    if (r>=.1) return {v:.2,why:'Heavy rain'}; if (r>=.02) return {v:.6,why:'Light rain'};
+    if (pr!=null&&pr>=60) return {v:.55,why:'Rain likely'}; return {v:.85,why:'Dry'};
+  }
+};
+const FACTOR_LABELS={light:'Light',solunar:'Solunar',pressure:'Pressure',wind:'Wind',temp:'Temp trend',rain:'Rain'};
+function huntScore(ctx,sp){
+  let s=0; const parts=[];
+  for (const k in sp.w){ const r=Factors[k](ctx,sp); s+=sp.w[k]*r.v; parts.push({k,label:FACTOR_LABELS[k]||k,w:sp.w[k],...r}); }
+  const legal = ctx.t>=ctx.day.legalStart && ctx.t<=ctx.day.legalEnd;
+  return {score:Math.round(100*s), parts, legal: legal || !!sp.night};
+}
+
+/* Exterior ballistics: point-mass solver with standard G1/G7 drag tables. */
+const Ballistics = (() => {
+  const G1=[[0,.2629],[.05,.2558],[.1,.2487],[.15,.2413],[.2,.2344],[.25,.2278],[.3,.2214],[.35,.2155],[.4,.2104],[.45,.2061],[.5,.2032],[.55,.202],[.6,.2034],[.7,.2165],[.725,.223],[.75,.2313],[.775,.2417],[.8,.2546],[.825,.2706],[.85,.2901],[.875,.3136],[.9,.3415],[.925,.3734],[.95,.4084],[.975,.4448],[1,.4805],[1.025,.5136],[1.05,.5427],[1.075,.5677],[1.1,.5883],[1.125,.6053],[1.15,.6191],[1.2,.6393],[1.25,.6518],[1.3,.6589],[1.35,.6621],[1.4,.6625],[1.45,.6607],[1.5,.6573],[1.55,.6528],[1.6,.6474],[1.65,.6413],[1.7,.6347],[1.75,.628],[1.8,.621],[1.85,.6141],[1.9,.6072],[1.95,.6003],[2,.5934],[2.05,.5867],[2.1,.5804],[2.15,.5743],[2.2,.5685],[2.25,.563],[2.3,.5577],[2.35,.5527],[2.4,.5481],[2.45,.5438],[2.5,.5397],[2.6,.5325],[2.7,.5264],[2.8,.5211],[2.9,.5168],[3,.5133],[3.1,.5105],[3.2,.5084],[3.3,.5067],[3.4,.5054],[3.5,.504],[3.6,.503],[3.7,.5022],[3.8,.5016],[3.9,.501],[4,.5006],[4.2,.4998],[4.4,.4995],[4.6,.4992],[4.8,.499],[5,.4988]];
+  const G7=[[0,.1198],[.05,.1197],[.1,.1196],[.15,.1194],[.2,.1193],[.25,.1194],[.3,.1194],[.35,.1194],[.4,.1193],[.45,.1193],[.5,.1194],[.55,.1193],[.6,.1194],[.65,.1197],[.7,.1202],[.725,.1207],[.75,.1215],[.775,.1226],[.8,.1242],[.825,.1266],[.85,.1306],[.875,.1368],[.9,.1464],[.925,.166],[.95,.2054],[.975,.2993],[1,.3803],[1.025,.4015],[1.05,.4043],[1.075,.4034],[1.1,.4014],[1.125,.3987],[1.15,.3955],[1.2,.3884],[1.25,.381],[1.3,.3732],[1.35,.3657],[1.4,.358],[1.5,.344],[1.55,.3376],[1.6,.3315],[1.65,.326],[1.7,.3209],[1.75,.316],[1.8,.3117],[1.85,.3078],[1.9,.3042],[1.95,.301],[2,.298],[2.05,.2951],[2.1,.2922],[2.15,.2892],[2.2,.2864],[2.25,.2835],[2.3,.2807],[2.35,.2779],[2.4,.2752],[2.45,.2725],[2.5,.2697],[2.55,.267],[2.6,.2643],[2.65,.2615],[2.7,.2588],[2.75,.2561],[2.8,.2533],[2.85,.2506],[2.9,.2479],[2.95,.2451],[3,.2424],[3.1,.2368],[3.2,.2313],[3.3,.2258],[3.4,.2205],[3.5,.2154],[3.6,.2106],[3.7,.206],[3.8,.2017],[3.9,.1975],[4,.1935],[4.2,.1861],[4.4,.1793],[4.6,.173],[4.8,.1672],[5,.1618]];
+  function cd(tbl,m){ if (m<=tbl[0][0]) return tbl[0][1];
+    for (let i=1;i<tbl.length;i++) if (m<=tbl[i][0]){ const [a,ca]=tbl[i-1],[b,cb]=tbl[i]; return ca+(cb-ca)*(m-a)/(b-a); }
+    return tbl[tbl.length-1][1]; }
+  function atmos(tempF,altFt){ const P=29.92*Math.pow(1-6.8753e-6*altFt,5.2559), T=tempF+459.67;
+    return {dens:(P/29.92)*(518.67/T), sound:49.0223*Math.sqrt(T)}; }
+  // Fly one bullet. Returns samples at each requested yardage. Distances in feet internally.
+  function fly(o,angle,yards){
+    const at=atmos(o.tempF,o.altFt), tbl=o.model==='G7'?G7:G1, g=32.174*Math.cos((o.inclineDeg||0)*DEG);
+    const want=[...yards].sort((a,b)=>a-b), res=[]; let i=0;
+    let x=0,y=-o.sightIn/12,z=0,vx=o.mv*Math.cos(angle),vy=o.mv*Math.sin(angle),vz=0,t=0;
+    const wz=-(o.crossMph||0)*1.46667; // wind from the right (+) pushes the bullet left (-)
+    while (i<want.length){
+      const rx=vx, ry=vy, rz=vz-wz, sp=Math.hypot(rx,ry,rz);
+      if (sp<100 || t>10) break;
+      const k=at.dens*cd(tbl,sp/at.sound)*2.08551e-4/o.bc, dt=1/sp;
+      const px=x,py=y,pz=z,pv=Math.hypot(vx,vy,vz),pt=t;
+      vx-=k*sp*rx*dt; vy-=(k*sp*ry+g)*dt; vz-=k*sp*rz*dt;
+      x+=vx*dt; y+=vy*dt; z+=vz*dt; t+=dt;
+      while (i<want.length && x>=want[i]*3){
+        const f=(want[i]*3-px)/(x-px), v=pv+(Math.hypot(vx,vy,vz)-pv)*f;
+        res.push({yd:want[i], dropIn:(py+(y-py)*f)*12, driftIn:(pz+(z-pz)*f)*12, v, time:pt+(t-pt)*f}); i++;
+      }
+    }
+    return res;
+  }
+  // Find the barrel angle that puts the bullet on the line of sight at the zero distance.
+  function zeroAngle(o,zeroYd){
+    const base={...o,crossMph:0,inclineDeg:0}; let lo=-0.01, hi=0.03;
+    for (let n=0;n<40;n++){ const mid=(lo+hi)/2, r=fly(base,mid,[zeroYd])[0];
+      if (!r || r.dropIn<0) lo=mid; else hi=mid; }
+    return (lo+hi)/2;
+  }
+  const inPerUnit=(unit,yd)=> unit==='MIL' ? 3.6*yd/100 : 1.0472*yd/100;
+  const clicks=(inches,yd,rifle)=> inches/inPerUnit(rifle.clickUnit,yd)/rifle.clickValue;
+  function opts(rifle,load,env){ return {mv:+load.mv,bc:+load.bc,model:load.model,sightIn:+rifle.sightIn,
+    tempF:+env.tempF,altFt:+env.altFt,inclineDeg:+env.inclineDeg||0,crossMph:crossWind(+env.windMph,+env.windClock)}; }
+  // Clock direction: 3 o'clock = from the right, 9 = from the left, 12 = head-on.
+  function crossWind(mph,clock){ return mph*Math.sin((clock%12)*30*DEG); }
+  // Full range card for a load that is zeroed (or has its correction dialed in).
+  function table(rifle,load,env,yards){
+    const o=opts(rifle,load,env), a=zeroAngle(o,+rifle.zeroYd);
+    return fly(o,a,yards).map(r=>({...r, energy:(+load.grains)*r.v*r.v/450240,
+      upClicks:-clicks(r.dropIn,r.yd,rifle), holdUnits:-r.dropIn/inPerUnit(rifle.clickUnit,r.yd),
+      windClicks:-clicks(r.driftIn,r.yd,rifle)}));
+  }
+  // Estimated scope change when you swap from the zero load to another load.
+  function swapEstimate(rifle,zeroLoad,load,env){
+    const zo=opts(rifle,zeroLoad,{...env,windMph:0,inclineDeg:0}), a=zeroAngle(zo,+rifle.zeroYd);
+    const r=fly(opts(rifle,load,{...env,windMph:0,inclineDeg:0}),a,[+rifle.zeroYd])[0];
+    if (!r) return null;
+    return {inches:r.dropIn, upClicks:-clicks(r.dropIn,+rifle.zeroYd,rifle)};
+  }
+  return {fly, zeroAngle, table, swapEstimate, clicks, inPerUnit, crossWind, atmos};
+})();
+/*CORE-END*/
+</script>
+<script>
+{
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2,9);
+const fmtT = t => t==null ? '—' : new Date(t).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+const fmtH = t => new Date(t).toLocaleTimeString([], {hour:'numeric'});
+const r1 = n => (Math.round(n*10)/10).toFixed(1);
+const compass = d => ['N','NE','E','SE','S','SW','W','NW'][Math.round(d/45)%8];
+const midnight = off => { const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+off); return d.getTime(); };
+const ON_CLAUDE = !!window.claude || /claude/.test(location.hostname);
+const calm = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
+
+const ICONS = {
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
+  wind:'<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/>',
+  cloud:'<path d="M7 18h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 1.5A3.5 3.5 0 0 0 7 18z"/>',
+  rain:'<path d="M7 15h10a4 4 0 0 0 0-8 6 6 0 0 0-11.5 1.5A3.5 3.5 0 0 0 7 15zM8 21l1-3M12 21l1-3M16 21l1-3"/>',
+  temp:'<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0z"/>',
+  gauge:'<path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  rifle:'<path d="M2 11h14l2-2h4v3l-7 1-1 3h-3l-1-3H2zM6 14l-1 5h3l1-5"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  scope:'<circle cx="12" cy="12" r="8"/><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+  arc:'<path d="M3 18c4-8 10-12 18-12M3 18h18"/>',
+  light:'<path d="M3 18h18M6 18a6 6 0 0 1 12 0M12 6V4M4.5 10.5 3 9M19.5 10.5 21 9"/>',
+  check:'<path d="M5 12l5 5 9-10"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  book:'<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
+  tree:'<path d="M12 2 5 13h4l-3 5h12l-3-5h4zM12 18v4"/>',
+  map:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
+  pin:'<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>'
+};
+const ic = (n,s=20) => `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]||''}</svg>`;
+const q = k => `<button type="button" class="q" data-tip="${k}" aria-label="What is ${esc((TIPS[k]||{}).t||k)}?">?</button>`;
+const FACTOR_ICON = {light:'light',solunar:'moon',pressure:'gauge',wind:'wind',temp:'temp',rain:'rain'};
+
+/* ---------- default data ---------- */
+function defaults(){
+  const rid=uid(), a=uid(), b=uid();
+  return {v:2, updated:0, onboarded:false, tours:{}, species:'deer', legalMin:CONFIG.legalLightMin, location:{...CONFIG.defaultLocation},
+    env:{tempF:55, altFt:300, windMph:10, windClock:3, inclineDeg:0, step:25, max:400, mag:9, viewYd:200},
+    manualWx:{temp:50, wind:6, dir:'N', trend:'steady', vsYesterday:'same', rain:'none'},
+    stands:[], activeStandId:null, log:[], mapStyle:'sat',
+    activeRifleId:rid,
+    rifles:[{id:rid, name:'Sample deer rifle', caliber:'.308 Win', sightIn:1.5, clickUnit:'MOA', clickValue:.25, zeroYd:100, twist:'1:10',
+      notes:'Sample — tap Edit and enter your own rifle.', zeroLoadId:a, activeLoadId:a,
+      loads:[{id:a, name:'Sample 150 gr factory', kind:'Factory', grains:150, bc:.4, model:'G1', mv:2820, notes:'Sample numbers — copy BC and velocity from your box.', fixUp:null, fixRight:null},
+             {id:b, name:'Sample 165 gr handload', kind:'Handload', grains:165, bc:.435, model:'G1', mv:2650, powder:'', charge:'', primer:'', coal:'', notes:'Sample — enter your own load.', fixUp:null, fixRight:null}]}]};
+}
+function upgrade(o){ const d=defaults(); const s={...d,...o,env:{...d.env,...(o.env||{})},manualWx:{...d.manualWx,...(o.manualWx||{})},tours:o.tours||{},stands:o.stands||[],log:o.log||[]};
+  if (o.onboarded===undefined) s.onboarded = !!o.updated; return s; }
+let S = defaults();
+
+/* ---------- 3. STORE ---------- */
+const Store = (() => {
+  const KEY='treeline.v1'; let ref=null, mode='phone', timer=null, busy=false, again=false;
+  const local=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ return null; } };
+  const saveLocal=s=>{ try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){} };
+  async function push(){ if (!ref) return; if (busy){ again=true; return; } busy=true;
+    try{ await ref.set({json:JSON.stringify(S), updated:S.updated}); mode='cloud'; }catch(e){ mode='phone'; }
+    busy=false; pill(); if (again){ again=false; push(); } }
+  function save(){ S.updated=Date.now(); saveLocal(S); clearTimeout(timer); timer=setTimeout(push,800); }
+  async function connect(onLoad){
+    try{
+      if (!window.claude || !claude.use) return;
+      const [db,user]=await Promise.all([claude.use('db'), claude.use('user')]);
+      if (!db || !user) return; const id=await user.id(); if (!id) return;
+      ref=db.doc('data/users/'+id+'/locker'); const snap=await ref.get(); mode='cloud';
+      let remote=null; if (snap.exists){ try{ remote=JSON.parse(snap.data().json); }catch(e){} }
+      onLoad(remote);
+    }catch(e){ mode='phone'; } pill();
+  }
+  function pill(){ $('#savePill').textContent = mode==='cloud' ? 'Saved to your account' : 'Saved on this phone'; }
+  return {local, save, saveLocal, connect, push, pill, get mode(){ return mode; }};
+})();
+
+const rifle = () => S.rifles.find(r=>r.id===S.activeRifleId) || S.rifles[0];
+const loadOf = (r,id) => r && r.loads.find(l=>l.id===id);
+const curLoad = () => { const r=rifle(); return loadOf(r,r.activeLoadId)||r.loads[0]; };
+/* Velocity used for all math: trued > chronograph > box adjusted for barrel length. */
+function effMV(r,l){ if (+l.mvTrued>0) return {v:+l.mvTrued, src:'trued'}; if (+l.mvChrono>0) return {v:+l.mvChrono, src:'chronograph'};
+  const tb=+l.testBarrel||0, b=+r.barrelIn||0; if (tb>0 && b>0 && +l.mv>0) return {v:Math.round(+l.mv-(tb-b)*CONFIG.fpsPerInch), src:`adjusted for ${b}" barrel`};
+  return {v:+l.mv, src:'box'}; }
+const Lp = (r,l) => ({...l, mv:effMV(r,l).v});
+const tbl = (r,l,env,yards) => Ballistics.table(r,Lp(r,l),env,yards);
+const DIRS=['N','NE','E','SE','S','SW','W','NW'];
+function correction(r,l){
+  if (!r || !l || l.id===r.zeroLoadId) return {up:0,right:0,source:'zero'};
+  if (l.fixUp!=null) return {up:l.fixUp, right:l.fixRight||0, source:'confirmed'};
+  const z=loadOf(r,r.zeroLoadId); const est = z && +z.bc>0 && +l.bc>0 ? Ballistics.swapEstimate(r,Lp(r,z),Lp(r,l),S.env) : null;
+  return {up: est?Math.round(est.upClicks):0, right:0, source:'estimate'};
+}
+const dirWord = (n,pos,neg) => n===0 ? 'No change' : `${n>0?pos:neg} ${Math.abs(n)} click${Math.abs(n)===1?'':'s'}`;
+
+/* ---------- 4. WEATHER ---------- */
+const Weather = (() => {
+  const KEY='treeline.wx'; let data=null, status='idle';
+  async function load(force){
+    const {lat,lon}=S.location;
+    try{ const c=JSON.parse(localStorage.getItem(KEY)||'null');
+      if (c && c.lat===lat && c.lon===lon){ data=c; if (!force && Date.now()-c.at<HOUR){ status='live'; return; } } }catch(e){}
+    status='loading';
+    try{
+      const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,pressure_msl,precipitation,precipitation_probability,cloud_cover&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timeformat=unixtime&timezone=GMT&past_days=1&forecast_days=7`;
+      const ctl=new AbortController(); const tm=setTimeout(()=>ctl.abort(),8000);
+      const j=await (await fetch(url,{signal:ctl.signal})).json(); clearTimeout(tm);
+      const h=j.hourly; data={lat,lon,at:Date.now(),t0:h.time[0]*1000, rows:h.time.map((t,i)=>({t:t*1000,temp:h.temperature_2m[i],wind:h.wind_speed_10m[i],gust:h.wind_gusts_10m[i],dir:h.wind_direction_10m[i],p:h.pressure_msl[i],rain:h.precipitation[i],prob:h.precipitation_probability[i],cloud:h.cloud_cover[i]}))};
+      try{ localStorage.setItem(KEY,JSON.stringify(data)); }catch(e){}
+      status='live';
+    }catch(e){ status = data && Date.now()-data.at<DAY ? 'cached' : 'manual'; }
+  }
+  function at(t){
+    if (data && status!=='manual'){
+      const i=Math.round((t-data.t0)/HOUR), r=data.rows[i];
+      if (r){ const p3=data.rows[i-3], p24=data.rows[i-24];
+        return {src:'live', ...r, pTrend:p3?r.p-p3.p:null, tDelta:p24?r.temp-p24.temp:null}; }
+    }
+    const m=S.manualWx;
+    return {src:'manual', temp:+m.temp, wind:+m.wind, dir:DIRS.indexOf(m.dir||'N')*45, p:null,
+      pTrend:{falling:-1.5,steady:0,rising:1.5,fast:-4}[m.trend], tDelta:{colder:-6,same:0,warmer:6}[m.vsYesterday],
+      rain:{none:0,light:.04,heavy:.15}[m.rain], prob:null};
+  }
+  return {load, at, get status(){ return status; }};
+})();
+
+/* ---------- 5. DRAWINGS ---------- */
+const Draw = {
+  // Moon phase disc. f = fraction lit, phase 0..1 (under .5 = waxing, lit on the right).
+  moon(f,phase,r){ const k=2*f-1, rx=Math.abs(k)*r;
+    return `<circle r="${r}" fill="var(--moonDark)"/><path d="M0 ${-r}A${r} ${r} 0 0 1 0 ${r}A${rx} ${r} 0 0 ${k>0?1:0} 0 ${-r}Z" fill="var(--moonLit)" ${phase<.5?'':'transform="scale(-1,1)"'}/><circle r="${r}" fill="none" stroke="var(--line)"/>`; },
+  // 24-hour dial: midnight at the bottom, noon at the top.
+  dial(day,size){
+    const c=size/2, R=c-26, pt=(h,r)=>{ const a=Math.PI/2+h/24*2*Math.PI; return [c+r*Math.cos(a), c+r*Math.sin(a)]; };
+    const hr=t=>Math.max(0,Math.min(24,(t-day.d0)/HOUR));
+    const arc=(h1,h2,r)=>{ if (h2-h1<=0) return ''; const [x1,y1]=pt(h1,r),[x2,y2]=pt(h2,r); return `M${x1} ${y1}A${r} ${r} 0 ${h2-h1>12?1:0} 1 ${x2} ${y2}`; };
+    let g=`<circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="var(--moonDark)" stroke-width="16"/>`;
+    if (day.legalStart) g+=`<path d="${arc(hr(day.legalStart),hr(day.legalEnd),R)}" fill="none" stroke="var(--brassbg)" stroke-opacity=".35" stroke-width="16"/>`;
+    if (day.sunrise) g+=`<path d="${arc(hr(day.sunrise),hr(day.sunset),R)}" fill="none" stroke="var(--moonLit)" stroke-width="16"/>`;
+    for (const p of day.periods) g+=`<path d="${arc(hr(p.start),hr(p.end),R-22)}" fill="none" stroke="var(--brassbg)" stroke-width="${p.kind==='major'?12:7}" stroke-linecap="round" opacity="${p.kind==='major'?1:.7}"/>`;
+    for (const [h,l] of [[0,'12a'],[6,'6a'],[12,'12p'],[18,'6p']]){ const [x,y]=pt(h,R+17); g+=`<text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" fill="var(--mute)">${l}</text>`; }
+    for (const e of day.moonEv){ const [x,y]=pt(hr(e.t),R-22); g+=`<circle cx="${x}" cy="${y}" r="4" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5"/>`; }
+    if (day.d0<=Date.now() && Date.now()<day.d0+DAY){ const h=hr(Date.now()), [x,y]=pt(h,R+8);
+      g+=`<line x1="${c}" y1="${c}" x2="${x}" y2="${y}" stroke="var(--blaze)" stroke-width="3" stroke-linecap="round"/>`; }
+    g+=`<circle cx="${c}" cy="${c}" r="${R-38}" fill="var(--panel)"/><g transform="translate(${c} ${c-8})">${Draw.moon(day.moon.fraction,day.moon.phase,Math.min(26,R-50))}</g>`;
+    g+=`<text x="${c}" y="${c+Math.min(26,R-50)+12}" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">${Math.round(day.moon.fraction*100)}% lit</text>`;
+    return g;
+  },
+  // Turret cap with ticks. The tick group spins; the arrow shows the UP / R direction.
+  turret(id,label){
+    let t=''; for (let i=0;i<60;i++){ const a=i*6*DEG, L=i%5===0?14:8, r=56;
+      t+=`<line x1="${65+Math.sin(a)*r}" y1="${65-Math.cos(a)*r}" x2="${65+Math.sin(a)*(r-L)}" y2="${65-Math.cos(a)*(r-L)}" stroke="#d8b46a" stroke-width="${i%5===0?2:1}"/>`; }
+    return `<svg viewBox="0 0 130 130" aria-hidden="true"><circle cx="65" cy="65" r="62" fill="#14261b" stroke="#d8b46a" stroke-width="2"/>
+      <g class="tg" id="${id}" style="transform-origin:65px 65px">${t}<circle cx="65" cy="65" r="30" fill="#1f3a2b" stroke="#2f5a43"/><circle cx="65" cy="12" r="4" fill="#ff6b1a"/></g>
+      <path d="M65 0v10" stroke="#f4efe3" stroke-width="3"/><text x="65" y="70" text-anchor="middle" font-family="Oswald, Arial Narrow, sans-serif" font-size="16" fill="#f4efe3">${label}</text></svg>`;
+  },
+  // Simple side-view deer in inches, vitals at (0,0), y up. Returned as SVG in a group you scale.
+  deer(){
+    return `<g fill="var(--deer)">
+      <ellipse cx="9" cy="-4" rx="23" ry="10.5"/>
+      <path d="M-11 -8 L-6 -12 L-19 -26 L-26 -22 Z"/>
+      <ellipse cx="-27" cy="-25" rx="7.5" ry="4.5" transform="rotate(-12 -27 -25)"/>
+      <ellipse cx="-22" cy="-31" rx="1.8" ry="4.2" transform="rotate(20 -22 -31)"/>
+      <rect x="-10" y="4" width="3" height="25" rx="1.4"/><rect x="-4" y="4" width="3" height="25" rx="1.4"/>
+      <rect x="21" y="2" width="3.2" height="27" rx="1.4"/><rect x="26.5" y="2" width="3.2" height="27" rx="1.4"/>
+      <ellipse cx="31.5" cy="-10" rx="2.5" ry="4" fill="var(--moonLit)"/></g>
+      <path d="M-24 -29c1-6 5-10 11-10M-19 -35l-1-4M-15 -38l0-4" fill="none" stroke="var(--deer)" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="-60" x2="70" y1="29" y2="29" stroke="var(--green2)" stroke-width=".8" opacity=".6"/>`;
+  },
+  // Top-down stand diagram: good-wind sectors, wind arrow, scent cone. Compass degrees, north up.
+  stand(st,dir,mph){
+    const c=120, P=(deg,r)=>[c+r*Math.sin(deg*DEG), c-r*Math.cos(deg*DEG)];
+    const sector=(d1,d2,r)=>{ const [x1,y1]=P(d1,r),[x2,y2]=P(d2,r); return `M${x1} ${y1}A${r} ${r} 0 0 1 ${x2} ${y2}`; };
+    let g=`<circle cx="${c}" cy="${c}" r="100" fill="var(--soft)" stroke="var(--line)"/><circle cx="${c}" cy="${c}" r="60" fill="none" stroke="var(--line)" stroke-dasharray="3 4"/>`;
+    for (const d of st.goodWinds||[]){ const a=DIRS.indexOf(d)*45; g+=`<path d="${sector(a-21,a+21,100)}" fill="none" stroke="var(--brassbg)" stroke-width="9" stroke-linecap="round"/>`; }
+    DIRS.forEach((d,i)=>{ const [x,y]=P(i*45,113); g+=`<text x="${x}" y="${y+4}" text-anchor="middle" font-size="${i%2?10:12}" font-weight="${d==='N'?700:400}" fill="var(--mute)">${d}</text>`; });
+    if (dir!=null){ const down=(dir+180)%360, [a1,b1]=P(down-24,96), [a2,b2]=P(down+24,96);
+      g+=`<path d="M${c} ${c}L${a1} ${b1}A96 96 0 0 1 ${a2} ${b2}Z" fill="var(--ox)" opacity=".22"/>`;
+      const [sx,sy]=P(dir,92), [ex,ey]=P(dir,24), [h1x,h1y]=P(dir-14,38), [h2x,h2y]=P(dir+14,38);
+      g+=`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><path d="M${ex} ${ey}L${h1x} ${h1y}L${h2x} ${h2y}Z" fill="var(--ink)"/>`;
+    }
+    g+=`<circle cx="${c}" cy="${c}" r="9" fill="var(--green)" stroke="#d8b46a" stroke-width="2"/>`;
+    return g;
+  },
+  pic(name){
+    if (name==='moa') return `<svg viewBox="0 0 320 120" width="100%" role="img" aria-label="One MOA is about 1 inch at 100 yards and 2 inches at 200"><path d="M20 60 L300 30 L300 90Z" fill="var(--soft)" stroke="var(--line)"/><line x1="160" y1="45" x2="160" y2="75" stroke="var(--brass)" stroke-width="3"/><line x1="300" y1="30" x2="300" y2="90" stroke="var(--brass)" stroke-width="3"/><circle cx="20" cy="60" r="5" fill="var(--ink)"/><text x="160" y="100" text-anchor="middle" font-size="13" fill="var(--ink)">100 yd: 1"</text><text x="296" y="110" text-anchor="end" font-size="13" fill="var(--ink)">200 yd: 2"</text></svg>`;
+    if (name==='bc') return `<svg viewBox="0 0 320 120" width="100%" role="img" aria-label="A high BC bullet drops less than a low BC bullet"><line x1="10" x2="310" y1="30" y2="30" stroke="var(--line)" stroke-dasharray="4 4"/><path d="M10 34 Q160 18 310 62" fill="none" stroke="var(--green2)" stroke-width="3"/><path d="M10 34 Q160 22 310 100" fill="none" stroke="var(--ox)" stroke-width="3"/><text x="306" y="56" text-anchor="end" font-size="13" fill="var(--green2)">high BC</text><text x="306" y="94" text-anchor="end" font-size="13" fill="var(--ox)">low BC</text></svg>`;
+    if (name==='turret') return `<div style="width:150px;margin:0 auto;background:var(--green);border-radius:14px;padding:6px">${Draw.turret('tipT','UP')}</div>`;
+    return '';
+  }
+};
+
+/* ---------- MAP (Leaflet, loaded only when the map is opened) ---------- */
+const Geo = {
+  dest(lat,lon,brg,m){ return [lat+m*Math.cos(brg*DEG)/111320, lon+m*Math.sin(brg*DEG)/(111320*Math.cos(lat*DEG))]; },
+  yards(a,b){ const R=6371000, dLa=(b[0]-a[0])*DEG, dLo=(b[1]-a[1])*DEG;
+    const h=Math.sin(dLa/2)**2+Math.cos(a[0]*DEG)*Math.cos(b[0]*DEG)*Math.sin(dLo/2)**2; return 2*R*Math.asin(Math.sqrt(h))*1.09361; }
+};
+const MapKit = {
+  map:null, group:null, loading:null,
+  load(){ if (window.L) return Promise.resolve(); if (this.loading) return this.loading;
+    this.loading=new Promise((res,rej)=>{ const css=document.createElement('link'); css.rel='stylesheet'; css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(css);
+      const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; sc.onload=()=>res(); sc.onerror=()=>{ this.loading=null; rej(); }; document.head.appendChild(sc); });
+    return this.loading; },
+  async mount(){
+    const el=$('#map'); if (!el) return;
+    try{ await this.load(); }catch(e){ el.innerHTML='<div class="warn" style="margin:16px">The map couldn\'t load. Check your signal and try again.</div>'; return; }
+    if (!$('#map')) return;
+    if (this.map){ this.map.remove(); this.map=null; }
+    const sel=S.stands.find(x=>x.id===UIx.selStand&&x.lat), first=S.stands.find(x=>x.lat);
+    const v=UIx.mapView || (sel?{lat:sel.lat,lon:sel.lon,z:17}:first?{lat:first.lat,lon:first.lon,z:16}:{lat:S.location.lat,lon:S.location.lon,z:14});
+    const m=this.map=L.map(el,{zoomControl:true}).setView([v.lat,v.lon],v.z);
+    const t=CONFIG.maps[S.mapStyle]||CONFIG.maps.sat; L.tileLayer(t.url,t.opt).addTo(m);
+    this.group=L.layerGroup().addTo(m);
+    m.on('moveend',()=>{ const c=m.getCenter(); UIx.mapView={lat:c.lat,lon:c.lng,z:m.getZoom()}; });
+    m.on('contextmenu',e=>{ if (UIx.measure) return; Screens.stands.edit({id:uid(),name:'',lat:+e.latlng.lat.toFixed(5),lon:+e.latlng.lng.toFixed(5),height:'',goodWinds:[],notes:''},true); });
+    m.on('click',e=>{ if (!UIx.measure) return; const p=[e.latlng.lat,e.latlng.lng]; if (!UIx.mA||UIx.mB){ UIx.mA=p; UIx.mB=null; } else UIx.mB=p; this.draw(); Screens.stands.panel(); });
+    this.draw();
+  },
+  draw(){
+    if (!this.map) return; const g=this.group; g.clearLayers();
+    for (const st of S.stands){ if (!st.lat||!st.lon) continue; const isSel=st.id===UIx.selStand;
+      const mk=L.marker([st.lat,st.lon],{icon:L.divIcon({className:'pinwrap',html:`<div class="pin ${isSel?'sel':''}"></div><div class="pinlab">${esc(st.name)}</div>`,iconSize:[22,22],iconAnchor:[11,11]})}).addTo(g);
+      mk.on('click',ev=>{ L.DomEvent.stopPropagation(ev); if (UIx.measure){ UIx.mA=[st.lat,st.lon]; UIx.mB=null; } else UIx.selStand=isSel?null:st.id; this.draw(); Screens.stands.panel(); }); }
+    const st=S.stands.find(x=>x.id===UIx.selStand&&x.lat), w=Weather.at(Date.now());
+    if (st && w.dir!=null && !UIx.measure){ const down=(w.dir+180)%360, R=CONFIG.scentConeMeters, cone=[[st.lat,st.lon]];
+      for (let a=-24;a<=24;a+=6) cone.push(Geo.dest(st.lat,st.lon,down+a,R));
+      L.polygon(cone,{color:'#e08a74',weight:1,fillColor:'#c0492f',fillOpacity:.3,interactive:false}).addTo(g);
+      const s0=Geo.dest(st.lat,st.lon,w.dir,R*.9), s1=Geo.dest(st.lat,st.lon,w.dir,R*.18);
+      L.polyline([s0,s1],{color:'#f4efe3',weight:5,interactive:false}).addTo(g);
+      L.polygon([s1,Geo.dest(st.lat,st.lon,w.dir-12,R*.3),Geo.dest(st.lat,st.lon,w.dir+12,R*.3)],{color:'#f4efe3',weight:1,fillColor:'#f4efe3',fillOpacity:1,interactive:false}).addTo(g); }
+    if (UIx.me){ L.circle([UIx.me.lat,UIx.me.lon],{radius:UIx.me.acc,color:'#4a90e2',weight:1,fillOpacity:.12,interactive:false}).addTo(g);
+      L.circleMarker([UIx.me.lat,UIx.me.lon],{radius:8,color:'#fff',weight:3,fillColor:'#2f80ed',fillOpacity:1}).addTo(g); }
+    if (UIx.measure && UIx.mA){ L.circleMarker(UIx.mA,{radius:6,color:'#d8b46a',weight:3,fillColor:'#1f3a2b',fillOpacity:1}).addTo(g);
+      if (UIx.mB){ const yd=Geo.yards(UIx.mA,UIx.mB); L.polyline([UIx.mA,UIx.mB],{color:'#d8b46a',weight:4,dashArray:'8 6'}).addTo(g);
+        L.circleMarker(UIx.mB,{radius:6,color:'#d8b46a',weight:3,fillColor:'#ff6b1a',fillOpacity:1}).addTo(g).bindTooltip(`${Math.round(yd)} yd`,{permanent:true,direction:'top',className:'mlabel',offset:[0,-8]}).openTooltip(); } }
+  }
+};
+
+/* ---------- sheets: forms, tips, coach ---------- */
+function openSheet(html){ const box=document.createElement('div'); box.className='sheet'; box.innerHTML=`<div role="dialog">${html}</div>`; document.body.appendChild(box);
+  box.addEventListener('click',e=>{ if (e.target===box||e.target.closest('[data-x]')) box.remove(); }); return box; }
+function tip(k){ const t=TIPS[k]; if (!t) return;
+  const box=openSheet(`<div class="hd"><h2>${esc(t.t)}</h2><button class="ghost" data-x>Close</button></div>${t.pic?`<div style="margin:12px 0">${Draw.pic(t.pic)}</div>`:''}<p>${esc(t.b)}</p><button class="pri wide" data-x>Got it</button>`);
+  if (t.pic==='turret' && !calm()) setTimeout(()=>{ const g=box.querySelector('#tipT'); if (g) g.style.transform='rotate(-48deg)'; },250); }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-tip]'); if (b){ e.preventDefault(); tip(b.dataset.tip); } });
+
+function sheet(title, fields, obj, onSave, extra=''){
+  const box=document.createElement('div'); box.className='sheet';
+  const draw=()=>{ box.innerHTML=`<div role="dialog" aria-label="${esc(title)}"><div class="hd"><h2>${esc(title)}</h2><button class="ghost" data-x>Close</button></div>
+    ${fields.filter(f=>!f.when||f.when(obj)).map(f=>`<label for="f_${f.k}">${esc(f.label)}${f.tip?q(f.tip):''}</label>${
+      f.type==='select' ? `<select id="f_${f.k}">${f.opts.map(o=>`<option ${obj[f.k]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`
+      : f.type==='textarea' ? `<textarea id="f_${f.k}">${esc(obj[f.k])}</textarea>`
+      : `<input id="f_${f.k}" type="${f.type}" ${f.step?`step="${f.step}" inputmode="decimal"`:''} value="${esc(obj[f.k])}">`}${f.help?`<div class="help">${esc(f.help)}</div>`:''}`).join('')}
+    ${extra}<div class="row" style="margin-top:18px"><button class="pri" data-save>Save</button><button data-x>Cancel</button></div></div>`; };
+  const read=()=>{ for (const f of fields){ const el=box.querySelector('#f_'+f.k); if (!el) continue; obj[f.k]= f.type==='number' ? (el.value===''?'':+el.value) : el.value; } };
+  draw(); document.body.appendChild(box);
+  box.addEventListener('change',e=>{ if (e.target.tagName==='SELECT'){ read(); draw(); } });
+  box.addEventListener('click',e=>{ if (e.target.closest('[data-tip]')) return;
+    if (e.target===box||e.target.closest('[data-x]')) box.remove();
+    if (e.target.closest('[data-save]')){ read(); onSave(obj); box.remove(); } });
+  return box;
+}
+
+const Coach = {
+  start(tab,force){ const steps=TOURS[tab]||[]; if (!steps.length || (!force && S.tours[tab])) return; this.tab=tab; this.i=0; this.steps=steps; this.show(); },
+  clear(){ $$('.spot').forEach(e=>e.classList.remove('spot')); const c=$('.coach'); if (c) c.remove(); },
+  show(){ this.clear(); let st=this.steps[this.i], el=st&&$(st.sel); while (st && !el){ this.i++; st=this.steps[this.i]; el=st&&$(st.sel); } if (!el){ this.done(); return; }
+    el.classList.add('spot'); el.scrollIntoView({block:'center', behavior:calm()?'auto':'smooth'});
+    const c=document.createElement('div'); c.className='coach'; c.setAttribute('role','dialog');
+    c.innerHTML=`<div class="dots" style="margin-bottom:10px">${this.steps.map((_,j)=>`<i class="${j===this.i?'on':''}"></i>`).join('')}</div><p style="margin:0 0 12px">${esc(st.text)}</p><div class="row"><button data-next>${this.i<this.steps.length-1?'Next':'Got it'}</button><button class="ghost" data-skip>Skip tour</button></div>`;
+    document.body.appendChild(c);
+    c.querySelector('[data-next]').onclick=()=>{ this.i++; this.i<this.steps.length ? this.show() : this.done(); };
+    c.querySelector('[data-skip]').onclick=()=>this.done(); },
+  done(){ this.clear(); S.tours[this.tab]=true; Store.save(); }
+};
+
+/* ---------- first-run setup ---------- */
+const Wizard = {
+  step:0, d:null,
+  open(){ const r=rifle(); this.d={name:S.location.name, coords:`${S.location.lat}, ${S.location.lon}`, species:S.species, rname:'', cal:'', unit:'MOA', click:.25, zero:100, sight:1.5, lname:'', grains:'', bc:'', mv:''}; this.step=0;
+    this.box=document.createElement('div'); this.box.className='sheet'; document.body.appendChild(this.box); this.draw(); },
+  read(){ this.box.querySelectorAll('[data-w]').forEach(el=>{ this.d[el.dataset.w]=el.value; }); },
+  draw(){ const d=this.d, s=this.step, chip=(k,v,l)=>`<button type="button" class="${String(d[k])===String(v)?'on':''}" data-wc="${k}|${v}">${l}</button>`;
+    const steps=[
+      ()=>`<h1>Welcome to Treeline</h1><p class="muted">Four quick questions and you're set. You can change any of it later in Setup.</p>
+        <h2 style="margin-top:18px">Where do you hunt?</h2><label for="w1">Name for this spot</label><input id="w1" data-w="name" value="${esc(d.name)}">
+        <label for="w2">Coordinates</label><input id="w2" data-w="coords" inputmode="decimal" value="${esc(d.coords)}"><div class="help">In Google Maps, press and hold your stand, copy the numbers that pop up, and paste them here.</div>`,
+      ()=>`<h2>What are you after?</h2><p class="muted">This changes how the hunt score weighs wind, light and weather.</p><div class="choice">${Object.entries(CONFIG.species).map(([k,v])=>chip('species',k,esc(v.label))).join('')}</div>`,
+      ()=>`<h2>Your rifle</h2><label for="w3">Name</label><input id="w3" data-w="rname" placeholder="Dad's .270" value="${esc(d.rname)}">
+        <label for="w4">Caliber</label><input id="w4" data-w="cal" placeholder=".270 Win" value="${esc(d.cal)}">
+        <label>Turret clicks ${q('clicks')}</label><div class="chips">${chip('click','0.25','1/4 MOA')}${chip('click','0.125','1/8 MOA')}${chip('click','0.1','0.1 MIL')}</div>
+        <label>Zero distance ${q('zero')}</label><div class="chips">${chip('zero',25,'25 yd')}${chip('zero',50,'50 yd')}${chip('zero',100,'100 yd')}${chip('zero',200,'200 yd')}</div>`,
+      ()=>`<h2>Your ammo</h2><p class="muted">These numbers are printed on most boxes. Skip this and you can add it later.</p>
+        <label for="w5">Name</label><input id="w5" data-w="lname" placeholder="Federal 130 gr" value="${esc(d.lname)}">
+        <div class="f2"><div><label for="w6">Bullet (gr)</label><input id="w6" data-w="grains" type="number" inputmode="decimal" value="${esc(d.grains)}"></div>
+        <div><label for="w7">BC ${q('bc')}</label><input id="w7" data-w="bc" type="number" step=".001" inputmode="decimal" value="${esc(d.bc)}"></div></div>
+        <label for="w8">Velocity (fps) ${q('mv')}</label><input id="w8" data-w="mv" type="number" inputmode="decimal" value="${esc(d.mv)}">`
+    ];
+    this.box.innerHTML=`<div role="dialog" aria-label="First-time setup"><div class="dots" style="margin-bottom:16px">${steps.map((_,j)=>`<i class="${j<=s?'on':''}"></i>`).join('')}</div>${steps[s]()}
+      <div class="row" style="margin-top:20px">${s<steps.length-1?`<button class="pri" data-wn>Next</button>`:`<button class="pri" data-wf>Finish</button>`}${s>0?`<button data-wb>Back</button>`:''}<button class="ghost" data-ws>${s===0?'Skip setup':'Skip the rest'}</button></div></div>`;
+    this.box.onclick=e=>{ const c=e.target.closest('[data-wc]'); if (c){ this.read(); const [k,v]=c.dataset.wc.split('|'); this.d[k]=v; if (k==='click') this.d.unit= v==='0.1'?'MIL':'MOA'; this.draw(); return; }
+      if (e.target.closest('[data-wn]')){ this.read(); this.step++; this.draw(); }
+      if (e.target.closest('[data-wb]')){ this.read(); this.step--; this.draw(); }
+      if (e.target.closest('[data-wf]')||e.target.closest('[data-ws]')){ this.read(); this.finish(); } };
+  },
+  finish(){ const d=this.d; S.location.name=d.name||S.location.name;
+    const m=String(d.coords).match(/(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/); if (m && Math.abs(+m[1])<=90 && Math.abs(+m[2])<=180){ S.location.lat=+m[1]; S.location.lon=+m[2]; }
+    S.species=d.species;
+    if (d.rname.trim()){ const lid=uid(), hasLoad=+d.bc>0&&+d.mv>0;
+      const r={id:uid(), name:d.rname.trim(), caliber:d.cal, sightIn:1.5, clickUnit:d.unit, clickValue:+d.click, zeroYd:+d.zero, twist:'', notes:'', zeroLoadId:lid, activeLoadId:lid,
+        loads:[{id:lid, name:d.lname||'My load', kind:'Factory', grains:+d.grains||'', bc:hasLoad?+d.bc:'', model:'G1', mv:hasLoad?+d.mv:'', notes:'', fixUp:null, fixRight:null}]};
+      S.rifles=[r]; S.activeRifleId=r.id; }
+    S.onboarded=true; Store.save(); this.box.remove(); Weather.load(true).then(go); go();
+  }
+};
+
+/* ---------- 6. SCREENS ---------- */
+const NAVICON = {forecast:'sun', stands:'tree', range:'arc', journal:'book', locker:'rifle'};
+const TABBAR = ['forecast','stands','range','journal','locker'];
+const UIx = {dayOff:0, hour:null, holes:[], tScale:8, zmode:'tap'};
+function standPick(t){ const w=Weather.at(t); if (w.dir==null||!S.stands.length) return '';
+  const lab=compass(w.dir), good=S.stands.filter(x=>(x.goodWinds||[]).includes(lab));
+  return `<span>${ic('tree',18)} ${lab} wind: ${good.length?`hunt <b>${esc(good.map(x=>x.name).join(', '))}</b>`:'none of your stands fit'}</span>`; }
+const VERDICT = s => s>=75?'Great day to hunt':s>=60?'Good day to hunt':s>=45?'Fair day':'Slow day';
+
+const Screens = {
+/* ===== Forecast ===== */
+forecast: { label:'Forecast',
+  compute(){
+    const sp=CONFIG.species[S.species]||CONFIG.species.deer, d0=midnight(UIx.dayOff), {lat,lon}=S.location;
+    const day=Astro.day(d0,lat,lon,S.legalMin,CONFIG.solunar);
+    const hours=[...Array(24)].map((_,h)=>{ const t=d0+h*HOUR+HOUR/2, wx=Weather.at(t); return {h,t,wx,...huntScore({t,day,...wx},sp)}; });
+    const now=Date.now(); let best=null, overall=null;
+    for (let h=0;h<23;h++){ const a=hours[h],b=hours[h+1]; if (!a.legal||!b.legal) continue;
+      const w={s:(a.score+b.score)/2, start:d0+h*HOUR, end:d0+(h+2)*HOUR, h};
+      if (!overall||w.s>overall.s) overall=w; if (w.end>now && (!best||w.s>best.s)) best=w; }
+    return {sp,day,hours,best:best||overall,overall,passed:!best&&!!overall};
+  },
+  render(){
+    const F=this.compute(); UIx.F=F; const {sp,day,hours,best}=F;
+    if (UIx.hour==null) UIx.hour = UIx.dayOff===0 ? new Date().getHours() : (best?best.h:6);
+    const sel=hours[UIx.hour], st=Weather.status;
+    const days=[...Array(7)].map((_,i)=>{ const d=new Date(midnight(i)); return `<button class="${i===UIx.dayOff?'on':''}" data-day="${i}">${i===0?'Today':d.toLocaleDateString([], {weekday:'short', day:'numeric'})}</button>`; }).join('');
+    const settle = best ? Math.max(best.start-30*6e4, day.legalStart||best.start) : null;
+    const rating=['Poor','Fair','Good','Excellent'][day.rating-1];
+    const wxNote = st==='live' ? 'Live forecast from Open-Meteo.' : st==='cached' ? 'Offline: showing the last forecast saved on this phone.' : st==='loading' ? 'Loading forecast…' : 'Live weather can\'t load here, so the score uses the conditions you enter at the bottom.';
+    return `<section class="band"><div class="wrap">
+      <div class="row between"><span class="muted small">${ic('pin',16)} ${esc(S.location.name)} · ${esc(sp.label)}</span><a href="#setup" class="small" style="color:#d8b46a">Change</a></div>
+      <div class="chips" style="margin-top:10px">${days}</div>
+      <div class="verdict" id="verdict"><div>
+        <h1>${best?(F.passed?'Today\'s best is over':VERDICT(best.s)):'No legal window'}</h1>
+        ${best?`<div class="sub"><span>${ic('clock',18)} Be settled by <b>${fmtT(settle)}</b></span><span>${ic('target',18)} Best ${fmtT(best.start)}–${fmtT(best.end)}</span>${standPick(best.start+HOUR)}</div>`:''}
+        <div class="row" style="margin-top:14px"><a href="#stand" style="text-decoration:none"><button class="on">${ic('scope',18)} In the stand</button></a></div>
+        ${F.passed?`<div class="small muted" style="margin-top:6px">Tap tomorrow above to plan the next hunt.</div>`:''}
+      </div><div class="badge-score"><div class="num">${best?Math.round(best.s):'—'}</div><span>hunt score ${q('score')}</span></div></div>
+    </div></section>
+    <div class="wrap">
+      <div class="card" id="stripcard"><div class="hd"><h3>${ic('clock')} Hour by hour</h3><span class="tiny muted">tap a bar</span></div>
+        <div class="fig"><svg id="strip" role="img" aria-label="Hunt score for each hour"></svg></div>
+        <div class="legend"><span><i class="sw" style="background:var(--brassbg)"></i>Best window</span><span><i class="sw" style="background:var(--green2)"></i>Legal light</span><span><i class="sw" style="background:var(--line)"></i>Not legal ${q('legal')}</span><span><i class="sw" style="background:var(--blaze)"></i>Now</span></div>
+        <div class="tiny muted" style="margin-top:6px">${esc(wxNote)}</div></div>
+      <div class="grid">
+        <div class="card"><div class="hd"><h3>${fmtH(sel.t-HOUR/2)} scores ${sel.score}</h3>${sel.legal?'':'<span class="badge" style="background:var(--ox);color:#fff">not legal</span>'}</div>
+          <div class="why">${sel.parts.map(p=>`${ic(FACTOR_ICON[p.k])}<div><div class="row between small"><span>${esc(p.label)}${p.k==='solunar'?' '+q('solunar'):p.k==='pressure'?' '+q('pressure'):''}</span></div><div class="meter"><i style="width:${Math.round(p.v*100)}%"></i></div><div class="tiny muted">${esc(p.why)}</div></div><span class="tiny muted">${Math.round(p.w*100)}%</span>`).join('')}</div>
+          ${sel.wx.src==='live'?`<dl class="kv small" style="margin-top:14px"><dt>${ic('temp',16)}Temp</dt><dd>${Math.round(sel.wx.temp)}°F</dd><dt>${ic('wind',16)}Wind</dt><dd>${Math.round(sel.wx.wind)} mph from ${compass(sel.wx.dir)}</dd><dt>${ic('gauge',16)}Pressure</dt><dd>${Math.round(sel.wx.p)} hPa${sel.wx.pTrend!=null?` (${sel.wx.pTrend>0?'+':''}${r1(sel.wx.pTrend)})`:''}</dd><dt>${ic('rain',16)}Rain chance</dt><dd>${sel.wx.prob??'—'}%</dd></dl>`:''}
+          <div class="tiny muted" style="margin-top:10px">Percent = how much each factor counts for ${esc(sp.label.toLowerCase())}.</div></div>
+        <div class="card" id="dialcard"><div class="hd"><h3>${ic('moon')} Moon and solunar</h3>${q('solunar')}</div>
+          <svg id="dial" viewBox="0 0 280 280" style="width:min(100%,280px);display:block;margin:0 auto" role="img" aria-label="24-hour dial with daylight and solunar periods">${Draw.dial(day,280)}</svg>
+          <div class="small" style="text-align:center;margin:4px 0 12px"><b>${esc(day.moon.name)}</b> · ${rating} solunar day</div>
+          <dl class="kv small">${day.periods.map(p=>`<dt>${p.kind==='major'?'Major (moon '+(p.cause==='over'?'overhead':'underfoot')+')':'Minor (moon'+(p.cause==='rise'?'rise':'set')+')'}</dt><dd>${fmtT(p.start)} – ${fmtT(p.end)}</dd>`).join('')||'<dt>No periods today</dt><dd></dd>'}</dl></div>
+        <div class="card"><div class="hd"><h3>${ic('light')} Sun and legal light</h3>${q('legal')}</div><dl class="kv">
+          <dt>Legal light starts</dt><dd>${fmtT(day.legalStart)}</dd><dt>Sunrise</dt><dd>${fmtT(day.sunrise)}</dd>
+          <dt>Sunset</dt><dd>${fmtT(day.sunset)}</dd><dt>Legal light ends</dt><dd>${fmtT(day.legalEnd)}</dd></dl>
+          <div class="warn safety tiny" style="margin-top:12px">Using ${S.legalMin} minutes before sunrise and after sunset. Always check your state's rule.</div></div>
+      </div>
+      ${st==='live'?'':this.manual()}
+    </div>`;
+  },
+  manual(){ const m=S.manualWx, opt=(k,list)=>`<select data-mw="${k}">${list.map(([v,l])=>`<option value="${v}" ${m[k]===v?'selected':''}>${l}</option>`).join('')}</select>`;
+    return `<div class="card"><h3>${ic('cloud')} Conditions at your spot</h3><p class="small muted" style="margin-top:4px">Enter what your weather app says. The score updates right away.</p>
+      <div class="f2"><div><label>Temperature (°F)</label><input type="number" inputmode="decimal" data-mw="temp" value="${esc(m.temp)}"></div>
+      <div><label>Wind (mph)</label><input type="number" inputmode="decimal" data-mw="wind" value="${esc(m.wind)}"></div>
+      <div><label>Wind from ${q('scent')}</label>${opt('dir',DIRS.map(d=>[d,d]))}</div>
+      <div><label>Barometer ${q('pressure')}</label>${opt('trend',[['falling','Falling'],['fast','Falling fast'],['steady','Steady'],['rising','Rising']])}</div>
+      <div><label>Vs. yesterday</label>${opt('vsYesterday',[['colder','Colder'],['same','About the same'],['warmer','Warmer']])}</div>
+      <div><label>Rain</label>${opt('rain',[['none','None'],['light','Light'],['heavy','Heavy']])}</div></div>
+      <button style="margin-top:14px" data-retry>Try live weather again</button></div>`; },
+  bind(){
+    $$('[data-day]').forEach(b=>b.onclick=()=>{ UIx.dayOff=+b.dataset.day; UIx.hour=null; go(); });
+    $$('[data-mw]').forEach(el=>el.onchange=()=>{ S.manualWx[el.dataset.mw]= el.type==='number'?+el.value:el.value; Store.save(); go(); });
+    const rt=$('[data-retry]'); if (rt) rt.onclick=async()=>{ rt.textContent='Trying…'; await Weather.load(true); go(); };
+    const s=$('#strip'), F=UIx.F; if (!s) return;
+    const draw=()=>{ if (s.clientWidth<60) return; const W=s.clientWidth, H=s.clientHeight, pl=4, pb=22, bw=(W-pl*2)/24, d0=F.day.d0, X=t=>pl+(t-d0)/HOUR*bw, narrow=W<520;
+      let g='';
+      for (const p of F.day.periods){ const a=Math.max(X(p.start),pl), b=Math.min(X(p.end),W-pl); if (b>a) g+=`<rect x="${a}" y="0" width="${b-a}" height="${H-pb}" fill="var(--brassbg)" opacity="${p.kind==='major'?.16:.08}" rx="4"/>`; }
+      F.hours.forEach((h,i)=>{ const bh=Math.max(4,(H-pb-12)*h.score/100), x=pl+i*bw+1.5, inBest=F.best && h.t>F.best.start && h.t<F.best.end;
+        g+=`<rect x="${x}" y="${H-pb-bh}" width="${bw-3}" height="${bh}" rx="3" fill="${!h.legal?'var(--line)':inBest?'var(--brassbg)':'var(--green2)'}" ${i===UIx.hour?'stroke="var(--ink)" stroke-width="2.5"':''}><title>${fmtH(h.t-HOUR/2)}: ${h.score}</title></rect>`;
+        if (i%(narrow?6:3)===0) g+=`<text x="${x}" y="${H-6}" font-size="12" fill="var(--mute)">${fmtH(h.t-HOUR/2)}</text>`; });
+      if (UIx.dayOff===0){ const x=X(Date.now()); g+=`<line x1="${x}" x2="${x}" y1="0" y2="${H-pb}" stroke="var(--blaze)" stroke-width="2.5"/>`; }
+      s.innerHTML=g; };
+    UIx.ro && UIx.ro.disconnect(); UIx.ro=new ResizeObserver(draw); UIx.ro.observe(s);
+    s.onclick=e=>{ const r=s.getBoundingClientRect(); UIx.hour=Math.max(0,Math.min(23,Math.floor((e.clientX-r.left-4)/((r.width-8)/24)))); go(); };
+  }
+},
+
+/* ===== Rifle Locker ===== */
+locker: { label:'Locker',
+  render(){
+    return `<div class="wrap"><div class="row between"><h1>Rifle locker</h1><button class="brass" data-addrifle>${ic('plus',18)} Add rifle</button></div>
+      <p class="small muted">The scope is sighted in with the load marked <b>Zero load</b>. Every other load shows the clicks to dial when you switch to it. Tap ${ic('target',16)} to sight in a load.</p>
+      ${S.rifles.map(r=>`<div class="card" style="${r.id===S.activeRifleId?'border:2px solid var(--brassbg)':''}">
+        <div class="hd"><div><h2>${esc(r.name)}</h2><div class="small muted">${esc(r.caliber)} · ${r.clickValue} ${esc(r.clickUnit)} per click · ${r.zeroYd} yd zero</div></div>
+        <div class="row">${r.id===S.activeRifleId?'<span class="badge">In use</span>':`<button data-act="${r.id}">Use</button>`}<button data-editr="${r.id}" aria-label="Edit rifle">${ic('edit',18)}</button></div></div>
+        ${r.notes?`<p class="small muted">${esc(r.notes)}</p>`:''}
+        ${r.loads.map(l=>{ const c=correction(r,l); return `<div class="load"><div class="hd" style="align-items:flex-start"><div><b>${esc(l.name)}</b> ${l.id===r.zeroLoadId?'<span class="badge">Zero load</span>':''}
+          <div class="small muted">${esc(l.kind)} · ${l.grains||'?'} gr · BC ${l.bc||'?'} ${esc(l.model)}${l.kind==='Handload'&&l.powder?` · ${esc(l.powder)} ${esc(l.charge)} gr`:''}</div>
+          ${+l.mv>0||+l.mvChrono>0||+l.mvTrued>0?(()=>{ const m=effMV(r,l); return `<div class="small">${ic('arc',16)} <b>${m.v} fps</b> <span class="tiny muted">(${esc(m.src)})</span></div>`; })():''}
+          ${l.id!==r.zeroLoadId?`<div class="small" style="margin-top:6px">${ic('scope',16)} Switch to this load: <b>${dirWord(c.up,'UP','DOWN')}${c.right?`, ${dirWord(c.right,'RIGHT','LEFT')}`:''}</b> <span class="tiny muted">(${c.source==='confirmed'?'confirmed at the range':'estimate, confirm with one shot'})</span></div>`:''}</div>
+          <div class="row" style="flex-wrap:nowrap">${l.id===r.activeLoadId&&r.id===S.activeRifleId?`<span class="badge" style="background:var(--green2);color:#fff">Selected</span>`:`<button data-sel="${r.id}|${l.id}">Select</button>`}<button data-sight="${r.id}|${l.id}" aria-label="Sight in this load">${ic('target',18)}</button><button data-editl="${r.id}|${l.id}" aria-label="Edit load">${ic('edit',18)}</button></div></div></div>`; }).join('')}
+        <div class="row" style="margin-top:8px"><button data-addload="${r.id}">${ic('plus',18)} Add load</button>${S.rifles.length>1?`<button class="ghost" data-delr="${r.id}">Delete rifle</button>`:''}</div></div>`).join('')}
+      <div class="warn safety tiny">Handload fields are for your records only. This app never suggests powder charges; use a published load manual.</div></div>`;
+  },
+  bind(){
+    const on=(sel,fn)=>$$(`[${sel}]`).forEach(b=>b.onclick=()=>fn(b.getAttribute(sel)));
+    on('data-act',id=>{ S.activeRifleId=id; Store.save(); go(); });
+    on('data-sel',v=>{ const [rid,lid]=v.split('|'); S.activeRifleId=rid; S.rifles.find(r=>r.id===rid).activeLoadId=lid; Store.save(); toast('Load selected'); go(); });
+    on('data-sight',v=>{ const [rid,lid]=v.split('|'); S.activeRifleId=rid; S.rifles.find(r=>r.id===rid).activeLoadId=lid; Store.save(); location.hash='zero'; });
+    on('data-editr',id=>{ const r=S.rifles.find(x=>x.id===id); sheet('Edit rifle',CONFIG.rifleFields,{...r},o=>{ Object.assign(r,o); Store.save(); go(); }); });
+    on('data-addrifle',()=>{ const lid=uid(); const r={id:uid(),name:'New rifle',caliber:'',sightIn:1.5,clickUnit:'MOA',clickValue:.25,zeroYd:100,twist:'',notes:'',zeroLoadId:lid,activeLoadId:lid,
+      loads:[{id:lid,name:'First load',kind:'Factory',grains:'',bc:'',model:'G1',mv:'',notes:'',fixUp:null,fixRight:null}]};
+      sheet('New rifle',CONFIG.rifleFields,r,o=>{ S.rifles.push(o); S.activeRifleId=o.id; Store.save(); go(); }); });
+    on('data-editl',v=>{ const [rid,lid]=v.split('|'), r=S.rifles.find(x=>x.id===rid), l=loadOf(r,lid);
+      const extra=`<div class="row" style="margin-top:16px">${l.id!==r.zeroLoadId?`<button data-mkzero>Make this the zero load</button>`:''}${r.loads.length>1?`<button class="ghost" data-dell>Delete load</button>`:''}</div>`;
+      const box=sheet('Edit load',CONFIG.loadFields,{...l},o=>{ Object.assign(l,o); Store.save(); go(); },extra);
+      box.addEventListener('click',e=>{
+        if (e.target.closest('[data-mkzero]')){ r.zeroLoadId=l.id; r.loads.forEach(x=>{x.fixUp=null;x.fixRight=null;}); Store.save(); box.remove(); toast('Zero load changed'); go(); }
+        const d=e.target.closest('[data-dell]'); if (d){ if (d.dataset.sure){ r.loads=r.loads.filter(x=>x.id!==l.id); if (r.zeroLoadId===l.id) r.zeroLoadId=r.loads[0].id; if (r.activeLoadId===l.id) r.activeLoadId=r.loads[0].id; Store.save(); box.remove(); go(); }
+          else { d.dataset.sure=1; d.textContent='Tap again to delete'; } } }); });
+    on('data-addload',rid=>{ const r=S.rifles.find(x=>x.id===rid); sheet('New load',CONFIG.loadFields,{id:uid(),name:'New load',kind:'Factory',grains:'',bc:'',model:'G1',mv:'',notes:'',fixUp:null,fixRight:null},o=>{ r.loads.push(o); Store.save(); go(); }); });
+    on('data-delr',id=>{ const b=$(`[data-delr="${id}"]`); if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again to delete'; return; }
+      S.rifles=S.rifles.filter(r=>r.id!==id); S.activeRifleId=S.rifles[0].id; Store.save(); go(); });
+  }
+},
+
+/* ===== Range card ===== */
+range: { label:'Range card',
+  pickers(r,l){ return `<div class="f2"><div><label>Rifle</label><select data-pick="rifle">${S.rifles.map(x=>`<option value="${x.id}" ${x.id===r.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+      <div><label>Load</label><select data-pick="load">${r.loads.map(x=>`<option value="${x.id}" ${x.id===l.id?'selected':''}>${esc(x.name)}${x.id===r.zeroLoadId?' (zero)':''}</option>`).join('')}</select></div></div>`; },
+  render(){
+    const r=rifle(), l=curLoad(), e=S.env, c=correction(r,l), ok=+l.bc>0 && +l.mv>0;
+    const yards=[]; for (let y=+e.step; y<=+e.max; y+=+e.step) yards.push(y);
+    const rows= ok ? tbl(r,l,e,yards) : [];
+    UIx.traj = ok ? tbl(r,l,{...e,windMph:0},[...Array(Math.ceil(+e.max/5))].map((_,i)=>(i+1)*5)) : [];
+    const u=r.clickUnit, field=(k,lab,st)=>`<div><label for="e_${k}">${lab}</label><input id="e_${k}" data-env="${k}" type="number" inputmode="decimal" step="${st}" value="${esc(e[k])}"></div>`;
+    if (+e.viewYd>+e.max) e.viewYd=+e.max;
+    return `<div class="wrap"><h1>Range card</h1>${this.pickers(r,l)}
+      ${l.id!==r.zeroLoadId?`<div class="warn" style="margin-top:14px">Your scope is zeroed with <b>${esc((loadOf(r,r.zeroLoadId)||{}).name)}</b>. Before shooting this load, dial <b>${dirWord(c.up,'UP','DOWN')}${c.right?`, ${dirWord(c.right,'RIGHT','LEFT')}`:''}</b> (${c.source==='confirmed'?'confirmed':'estimate'}). Everything below assumes that's done.</div>`:''}
+      ${ok?`<div class="card" id="scopecard" style="margin-top:14px"><div class="hd"><h3>${ic('scope')} Through the scope</h3>${q('hold')}</div>
+        <div class="scopewrap"><svg id="scope" viewBox="-50 -50 100 100" role="img" aria-label="Scope view of a deer at the chosen distance"></svg></div>
+        <div style="text-align:center;margin-top:8px"><div class="big" id="sv_main">—</div><div class="small muted" id="sv_sub"></div></div>
+        <label for="sv_yd" style="justify-content:space-between">Distance <span id="sv_ydl" class="os" style="font-size:20px">${e.viewYd} yd</span></label>
+        <input id="sv_yd" type="range" min="25" max="${e.max}" step="5" value="${e.viewYd}">
+        <div class="row between" style="margin-top:6px"><span class="small muted">Scope power ${q('mag')}</span><div class="seg">${[3,6,9].map(m=>`<button class="${+e.mag===m?'on':''}" data-mag="${m}">${m}x</button>`).join('')}</div></div>
+        <div class="tiny muted" style="margin-top:10px">Wind: ${e.windMph} mph from ${e.windClock} o'clock. The brass dot is where the bullet lands when you hold as shown. The hollow ring is where it would land if you aimed dead-on.</div></div>
+      <div class="card" id="trajcard"><div class="hd"><h3>${ic('arc')} Bullet path</h3><button class="brass" data-fire>Fire</button></div>
+        <div class="fig" style="height:210px"><svg id="traj" role="img" aria-label="Bullet path chart"></svg></div></div>
+      <div class="card"><div class="tablewrap"><table><thead><tr><th>Yards</th><th>Path (in)</th><th>Dial</th><th>Hold ${u}</th><th>Wind (in)</th><th>Wind dial</th><th>fps</th><th>ft-lb</th></tr></thead><tbody>
+        ${rows.map(x=>{ const up=Math.round(x.upClicks), wd=Math.round(x.windClicks); return `<tr class="${x.yd===+r.zeroYd?'hl':''}"><td><b>${x.yd}</b></td><td>${x.dropIn>0?'+':''}${r1(x.dropIn)}</td><td>${up===0?'—':`${up>0?'UP':'DN'} ${Math.abs(up)}`}</td><td>${r1(Math.abs(x.holdUnits))} ${x.holdUnits>0.05?'high':x.holdUnits<-0.05?'low':''}</td><td>${r1(Math.abs(x.driftIn))} ${x.driftIn<0?'L':x.driftIn>0?'R':''}</td><td>${wd===0?'—':`${wd>0?'R':'L'} ${Math.abs(wd)}`}</td><td>${Math.round(x.v)}</td><td>${Math.round(x.energy)}</td></tr>`; }).join('')}
+      </tbody></table></div><div class="tiny muted" style="margin-top:8px">Path: + means above the crosshair. Dial = clicks so the crosshair is dead-on. Hold = aim that far high or low instead.</div></div>`
+      :`<div class="warn" style="margin-top:14px">Add a BC and velocity to this load in the Locker to see where it hits. ${q('bc')}</div>`}
+      ${ok?`<div class="card" id="truecard"><div class="hd"><h3>${ic('target')} True your velocity</h3>${q('truing')}</div>
+        <p class="small muted" style="margin-top:0">Aim dead-on at a far target (no dialing), then enter where the group landed. Using <b>${effMV(r,l).v} fps</b> (${esc(effMV(r,l).src)}).</p>
+        <div class="f2"><div><label for="tr_yd">Distance (yd)</label><input id="tr_yd" type="number" inputmode="decimal" value="${UIx.trYd||300}"></div>
+        <div><label for="tr_in">Inches from bullseye</label><input id="tr_in" type="number" step=".25" inputmode="decimal" value="${UIx.trIn||''}" placeholder="12"></div></div>
+        <div class="seg" style="margin-top:8px"><button class="${UIx.trDir!=='high'?'on':''}" data-trd="low">Low</button><button class="${UIx.trDir==='high'?'on':''}" data-trd="high">High</button></div>
+        <div class="row" style="margin-top:12px"><button class="brass" data-true>Calculate</button>${+l.mvTrued>0?`<button class="ghost" data-untrue>Clear trued speed</button>`:''}</div><div id="trout" class="small" style="margin-top:8px"></div></div>`:''}
+      <div class="row" style="margin-bottom:14px"><a href="#zero" style="text-decoration:none"><button>${ic('target',18)} Sight-in helper</button></a></div>
+      <div class="card"><h3>${ic('wind')} Conditions</h3><div class="f2">${field('windMph','Wind (mph)',1)}${field('windClock',"From (o'clock)",1)}${field('tempF','Temp (°F)',1)}${field('altFt','Elevation (ft)',50)}${field('inclineDeg','Shot angle (°)',1)}${field('step','Row every (yd)',5)}${field('max','Out to (yd)',25)}</div>
+        <div class="tiny muted" style="margin-top:8px">12 o'clock is wind in your face, 3 is from the right, 9 from the left. Use shot angle for tree-stand or hill shots.</div></div></div>`;
+  },
+  scope(){
+    const svg=$('#scope'); if (!svg) return; const r=rifle(), l=curLoad(), e=S.env, yd=+e.viewYd;
+    const row=tbl(r,l,e,[yd])[0]; if (!row) return;
+    const fovIn=(105/+e.mag)*12*yd/100, k=100/fovIn;                // svg units per inch
+    const hx=-row.driftIn, hy=-row.dropIn;                          // hold point relative to vitals (inches, y up)
+    // view is centered on the crosshair (the hold point); the deer sits offset from it
+    const T=`translate(${-hx*k} ${hy*k}) scale(${k})`;
+    const up=Math.round(row.upClicks);
+    svg.innerHTML=`<defs><clipPath id="lens"><circle r="49"/></clipPath></defs>
+      <g clip-path="url(#lens)"><rect x="-50" y="-50" width="100" height="100" fill="var(--paper)"/>
+        <g transform="${T}">${Draw.deer()}<circle r="4.5" fill="none" stroke="var(--ox)" stroke-width="${0.8/k*3}" stroke-dasharray="${1.4/k*3} ${1/k*3}"/>
+          <circle cx="${row.driftIn}" cy="${-row.dropIn}" r="${Math.max(1.2,2.2/k)}" fill="none" stroke="var(--ink)" stroke-width="${.6/k*2}"/>
+          <circle r="${Math.max(1,1.8/k)}" fill="var(--brassbg)" stroke="#1b1708" stroke-width="${.4/k*2}" class="pop"/></g>
+        <g stroke="#111" stroke-width=".5"><line x1="-50" x2="-14" y1="0" y2="0" stroke-width="2.4"/><line x1="14" x2="50" y1="0" y2="0" stroke-width="2.4"/><line y1="-50" y2="-14" x1="0" x2="0" stroke-width="2.4"/><line y1="14" y2="50" x1="0" x2="0" stroke-width="2.4"/><line x1="-14" x2="14" y1="0" y2="0"/><line y1="-14" y2="14" x1="0" x2="0"/></g></g>
+      <circle r="49" fill="none" stroke="var(--green)" stroke-width="2"/>`;
+    const holdU=Math.abs(row.holdUnits), hIn=Math.abs(row.dropIn);
+    $('#sv_main').textContent = hIn<0.75 ? 'Aim dead-on' : `Hold ${r1(hIn)}" ${row.dropIn<0?'high':'low'}`;
+    $('#sv_sub').textContent = `${yd} yd · or dial ${up===0?'nothing':`${up>0?'UP':'DOWN'} ${Math.abs(up)} clicks`} (${r1(holdU)} ${r.clickUnit})${Math.abs(row.driftIn)>=0.75?` · wind ${r1(Math.abs(row.driftIn))}" ${row.driftIn<0?'left: hold right':'right: hold left'}`:''}`;
+    $('#sv_ydl').textContent=`${yd} yd`;
+  },
+  traj(fire){
+    const s=$('#traj'); if (!s||!UIx.traj.length||s.clientWidth<60) return;
+    const W=s.clientWidth,H=s.clientHeight,p=36,pts=UIx.traj, maxY=+S.env.max, r=rifle();
+    const ys=pts.map(q=>q.dropIn), hi=Math.max(4,...ys), lo=Math.min(-4,...ys);
+    const X=y=>p+(y/maxY)*(W-p-12), Y=v=>10+(hi-v)/(hi-lo)*(H-36);
+    let g=`<line x1="${p}" x2="${W-12}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--mute)" stroke-dasharray="4 4"/><text x="${W-12}" y="${Y(0)-6}" text-anchor="end" font-size="12" fill="var(--mute)">crosshair</text>`;
+    const d=`M${X(0)} ${Y(-r.sightIn)} ${pts.map(q=>`L${X(q.yd)} ${Y(q.dropIn)}`).join(' ')}`;
+    g+=`<path id="tpath" d="${d}" fill="none" stroke="var(--green2)" stroke-width="3" stroke-linecap="round"/>`;
+    const vx=X(+S.env.viewYd); g+=`<line x1="${vx}" x2="${vx}" y1="6" y2="${H-24}" stroke="var(--brass)" stroke-dasharray="2 3"/>`;
+    const zx=X(+r.zeroYd); g+=`<circle cx="${zx}" cy="${Y(0)}" r="5" fill="var(--ink)"/><text x="${zx}" y="${Y(0)+20}" text-anchor="middle" font-size="12" fill="var(--ink)">zero</text>`;
+    const tick=W<520?100:50; for (let y=tick;y<=maxY;y+=tick) g+=`<text x="${X(y)}" y="${H-4}" text-anchor="middle" font-size="12" fill="var(--mute)">${y}</text>`;
+    for (const v of [Math.round(hi),Math.round(lo)]) g+=`<text x="${p-6}" y="${Y(v)+4}" text-anchor="end" font-size="12" fill="var(--mute)">${v>0?'+':''}${v}"</text>`;
+    g+=`<circle id="bul" r="5" fill="var(--brassbg)" stroke="#1b1708" cx="${X(0)}" cy="${Y(-r.sightIn)}" opacity="${fire?1:0}"/>`;
+    s.innerHTML=g;
+    if (fire){ const path=s.querySelector('#tpath'), b=s.querySelector('#bul'), L=path.getTotalLength(), t0=performance.now(), dur=calm()?1:900;
+      const stepF=now=>{ const f=Math.min(1,(now-t0)/dur), pt=path.getPointAtLength(L*f*f*(3-2*f)); b.setAttribute('cx',pt.x); b.setAttribute('cy',pt.y); if (f<1) requestAnimationFrame(stepF); };
+      requestAnimationFrame(stepF); }
+  },
+  bind(){
+    $$('[data-env]').forEach(el=>el.onchange=()=>{ S.env[el.dataset.env]=+el.value; if (S.env.step<5) S.env.step=5; if (S.env.max<50) S.env.max=50; Store.save(); go(); });
+    $$('[data-pick]').forEach(el=>el.onchange=()=>{ if (el.dataset.pick==='rifle') S.activeRifleId=el.value; else rifle().activeLoadId=el.value; Store.save(); go(); });
+    $$('[data-mag]').forEach(b=>b.onclick=()=>{ S.env.mag=+b.dataset.mag; $$('[data-mag]').forEach(x=>x.classList.toggle('on',x===b)); Store.save(); this.scope(); });
+    const sl=$('#sv_yd'); if (sl){ sl.oninput=()=>{ S.env.viewYd=+sl.value; this.scope(); this.traj(false); }; sl.onchange=()=>Store.save(); }
+    const f=$('[data-fire]'); if (f) f.onclick=()=>this.traj(true);
+    $$('[data-trd]').forEach(b=>b.onclick=()=>{ UIx.trDir=b.dataset.trd; $$('[data-trd]').forEach(x=>x.classList.toggle('on',x===b)); });
+    const tb=$('[data-true]'); if (tb) tb.onclick=()=>{ const r=rifle(), l=curLoad(), yd=+$('#tr_yd').value, inch=+$('#tr_in').value; UIx.trYd=yd; UIx.trIn=inch;
+      const out=$('#trout'); if (!(yd>+r.zeroYd) || !(inch>=0)){ out.textContent='Enter a distance past your zero and how far the group landed from the bullseye.'; return; }
+      const target=(UIx.trDir==='high'?1:-1)*inch, env={...S.env,windMph:0,inclineDeg:0}, base=effMV(r,l).v;
+      const pathAt=v=>{ const x=Ballistics.table(r,{...l,mv:v},env,[yd])[0]; return x?x.dropIn:-1e9; };
+      let lo=base*.6, hi=base*1.4; if (target<pathAt(lo)||target>pathAt(hi)){ out.textContent='That result is too far from what this load can do. Double-check the BC, the distance and your zero.'; return; }
+      for (let n=0;n<40;n++){ const m=(lo+hi)/2; if (pathAt(m)<target) lo=m; else hi=m; }
+      const v=Math.round((lo+hi)/2);
+      out.innerHTML=`Your load is really doing about <b>${v} fps</b> (${v>=base?'+':''}${v-base} vs. ${base}). <button class="pri" data-savetrue="${v}" style="margin-top:8px">Use ${v} fps</button>`;
+      out.querySelector('[data-savetrue]').onclick=()=>{ l.mvTrued=v; Store.save(); toast('Trued velocity saved'); go(); }; };
+    const ut=$('[data-untrue]'); if (ut) ut.onclick=()=>{ delete curLoad().mvTrued; Store.save(); go(); };
+    this.scope();
+    const s=$('#traj'); if (s){ UIx.ro2 && UIx.ro2.disconnect(); UIx.ro2=new ResizeObserver(()=>this.traj(false)); UIx.ro2.observe(s); }
+  }
+},
+
+/* ===== Sight-in ===== */
+zero: { label:'Sight-in', st:{yd:100, vIn:0, vDir:'low', hIn:0, hDir:'left'},
+  offsets(){ const z=this.st;
+    if (UIx.zmode==='tap'){ const h=UIx.holes; if (!h.length) return null;
+      return {v:h.reduce((a,p)=>a+p.y,0)/h.length, h:h.reduce((a,p)=>a+p.x,0)/h.length}; }
+    return {v:(z.vDir==='high'?1:-1)*(+z.vIn||0), h:(z.hDir==='right'?1:-1)*(+z.hIn||0)}; },
+  clicks(o,r){ const yd=+this.st.yd||100; return {up:Math.round(-Ballistics.clicks(o.v,yd,r)), right:Math.round(-Ballistics.clicks(o.h,yd,r))}; },
+  render(){
+    const r=rifle(), l=curLoad(), z=this.st, isZero=l.id===r.zeroLoadId, base=correction(r,l), o=this.offsets(), c=o?this.clicks(o,r):{up:0,right:0};
+    let short=''; if (+l.bc>0 && +l.mv>0){ const t=tbl(r,l,{...S.env,windMph:0,inclineDeg:0},[25,50].filter(y=>y<+r.zeroYd));
+      short=t.map(x=>`<dt>At ${x.yd} yd</dt><dd>${r1(Math.abs(x.dropIn))}" ${x.dropIn<0?'low':'high'}</dd>`).join(''); }
+    const tog=(k,a,b)=>`<div class="seg" style="margin-top:6px"><button class="${z[k]===a?'on':''}" data-tog="${k}|${a}">${a[0].toUpperCase()+a.slice(1)}</button><button class="${z[k]===b?'on':''}" data-tog="${k}|${b}">${b[0].toUpperCase()+b.slice(1)}</button></div>`;
+    return `<div class="wrap"><h1>Sight-in helper</h1>${Screens.range.pickers(r,l)}
+      <label for="z_yd">Distance to target (yd)</label><input id="z_yd" data-z="yd" type="number" inputmode="decimal" value="${esc(z.yd)}">
+      <div class="card" id="tgtcard" style="margin-top:14px"><div class="hd"><h3>${ic('target')} Where did your shots hit?</h3><div class="seg"><button class="${UIx.zmode==='tap'?'on':''}" data-zm="tap">Tap</button><button class="${UIx.zmode==='type'?'on':''}" data-zm="type">Type</button></div></div>
+        ${UIx.zmode==='tap'?`<svg id="tgt" role="img" aria-label="Target. Tap where each shot hit." tabindex="0"></svg>
+          <div class="row between" style="margin-top:10px"><span class="small muted" id="tgtinfo">${UIx.holes.length?`${UIx.holes.length} shot${UIx.holes.length>1?'s':''} · group center ${r1(Math.abs(o.v))}" ${o.v<0?'low':'high'}, ${r1(Math.abs(o.h))}" ${o.h<0?'left':'right'}`:'Tap where each bullet hit. Squares are 1 inch.'}</span>
+          <div class="row"><div class="seg">${[4,8,12].map(s=>`<button class="${UIx.tScale===s?'on':''}" data-ts="${s}" aria-label="Show ${s*2} inch target">${s*2}"</button>`).join('')}</div><button class="ghost" data-clear>Clear</button></div></div>`
+        :`<div class="f2"><div><label for="z_v">Up/down miss (in)</label><input id="z_v" data-z="vIn" type="number" step=".25" inputmode="decimal" value="${esc(z.vIn)}">${tog('vDir','low','high')}</div>
+          <div><label for="z_h">Left/right miss (in)</label><input id="z_h" data-z="hIn" type="number" step=".25" inputmode="decimal" value="${esc(z.hIn)}">${tog('hDir','left','right')}</div></div>
+          <p class="small muted">Measure from the bullseye to the center of your group.</p>`}</div>
+      <div class="dial2" id="turrets">
+        <div class="turretbox"><div class="small">Elevation ${q('clicks')}</div>${Draw.turret('tgE','UP')}<div class="big" id="cE">${c.up===0?'Leave it':`${c.up>0?'UP':'DOWN'} ${Math.abs(c.up)}`}</div><div class="small">${c.up===0?'&nbsp;':'clicks'}</div></div>
+        <div class="turretbox"><div class="small">Windage</div>${Draw.turret('tgW','R')}<div class="big" id="cW">${c.right===0?'Leave it':`${c.right>0?'RIGHT':'LEFT'} ${Math.abs(c.right)}`}</div><div class="small">${c.right===0?'&nbsp;':'clicks'}</div></div></div>
+      <button class="brass wide" style="margin-top:12px" data-show ${o?'':'disabled'}>Show me</button>
+      <p class="tiny muted">Turn each turret the way its arrow points (UP or R) to move hits up or right. One click = ${r.clickValue} ${esc(r.clickUnit)} ≈ ${r1(Ballistics.inPerUnit(r.clickUnit,+z.yd||100)*r.clickValue*10)/10}" at ${esc(z.yd)} yd. Then fire one confirming shot.</p>
+      <div class="card">${isZero?`<p class="small" style="margin:0">This is your zero load. Once your group sits on the bullseye, you're done.</p>`
+        :`<p class="small" style="margin-top:0">This load is ${base.source==='confirmed'?'set to':'estimated at'} <b>${dirWord(base.up,'UP','DOWN')}${base.right?`, ${dirWord(base.right,'RIGHT','LEFT')}`:''}</b> from your zero. If you dialed that and still missed, save the total.</p>
+          <button class="pri" data-savefix>Save ${dirWord(base.up+c.up,'UP','DOWN')}${base.right+c.right?`, ${dirWord(base.right+c.right,'RIGHT','LEFT')}`:''}</button>
+          <button style="margin-top:8px" data-mkzero>I re-zeroed with this load</button>`}</div>
+      ${short?`<div class="card"><h3>${ic('target')} Shortcut: sight in up close</h3><p class="small muted">With a ${r.zeroYd}-yd zero, this load should hit:</p><dl class="kv">${short}</dl></div>`:''}</div>`;
+  },
+  target(){
+    const s=$('#tgt'); if (!s) return; const S2=UIx.tScale, grid=S2>8?2:1;
+    let g=`<rect x="${-S2}" y="${-S2}" width="${S2*2}" height="${S2*2}" fill="var(--paper)"/>`;
+    for (let v=-S2; v<=S2; v+=grid) g+=`<line x1="${v}" x2="${v}" y1="${-S2}" y2="${S2}" stroke="#7aa08a" stroke-width="${v===0?.06*S2/4:.025*S2/4}" opacity=".7"/><line y1="${v}" y2="${v}" x1="${-S2}" x2="${S2}" stroke="#7aa08a" stroke-width="${v===0?.06*S2/4:.025*S2/4}" opacity=".7"/>`;
+    g+=`<circle r="2" fill="#1f3a2b"/><circle r="1" fill="#d8b46a"/><circle r=".35" fill="#1f3a2b"/>`;
+    const h=UIx.holes, cx=h.length?h.reduce((a,p)=>a+p.x,0)/h.length:0, cy=h.length?h.reduce((a,p)=>a+p.y,0)/h.length:0, rr=.18*S2/4;
+    g+=`<g class="holes" id="holes">${h.map(p=>`<circle class="pop" cx="${p.x}" cy="${-p.y}" r="${rr*1.6}" fill="#2a1a14" stroke="#e9e2cf" stroke-width="${rr*.5}"/>`).join('')}
+      ${h.length>1?`<g stroke="var(--ox)" stroke-width="${rr*.6}"><line x1="${cx-rr*3}" x2="${cx+rr*3}" y1="${-cy}" y2="${-cy}"/><line x1="${cx}" x2="${cx}" y1="${-cy-rr*3}" y2="${-cy+rr*3}"/></g>`:''}</g>`;
+    s.setAttribute('viewBox',`${-S2} ${-S2} ${S2*2} ${S2*2}`); s.innerHTML=g;
+  },
+  bind(){
+    const z=this.st, r=rifle(), l=curLoad();
+    $$('[data-z]').forEach(el=>{ el.oninput=()=>{ z[el.dataset.z]=el.value; }; el.onchange=()=>go(); });
+    $$('[data-tog]').forEach(b=>b.onclick=()=>{ const [k,v]=b.dataset.tog.split('|'); z[k]=v; go(); });
+    $$('[data-zm]').forEach(b=>b.onclick=()=>{ UIx.zmode=b.dataset.zm; go(); });
+    $$('[data-ts]').forEach(b=>b.onclick=()=>{ UIx.tScale=+b.dataset.ts; go(); });
+    $$('[data-pick]').forEach(el=>el.onchange=()=>{ if (el.dataset.pick==='rifle') S.activeRifleId=el.value; else rifle().activeLoadId=el.value; Store.save(); go(); });
+    const cl=$('[data-clear]'); if (cl) cl.onclick=()=>{ UIx.holes=[]; go(); };
+    const s=$('#tgt'); if (s){ this.target();
+      s.onclick=e=>{ const pt=s.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY; const p=pt.matrixTransform(s.getScreenCTM().inverse());
+        if (UIx.holes.length>=10) UIx.holes.shift(); UIx.holes.push({x:+p.x.toFixed(2), y:+(-p.y).toFixed(2)}); go(); }; }
+    const sh=$('[data-show]'); if (sh) sh.onclick=()=>{ const o=this.offsets(); if (!o) return; const c=this.clicks(o,r), per=360/CONFIG.clicksPerTurn;
+      const E=$('#tgE'), W=$('#tgW'); if (E) E.style.transform=`rotate(${-c.up*per}deg)`; if (W) W.style.transform=`rotate(${-c.right*per}deg)`;
+      const H=$('#holes'); if (H) H.style.transform=`translate(${-o.h}px, ${o.v}px)`;
+      const count=(el,n,pos,neg)=>{ if (!el||n===0) return; const t0=performance.now(), dur=calm()?1:1100;
+        const f=now=>{ const k=Math.min(1,(now-t0)/dur); el.textContent=`${n>0?pos:neg} ${Math.round(Math.abs(n)*k)}`; if (k<1) requestAnimationFrame(f); }; requestAnimationFrame(f); };
+      count($('#cE'),c.up,'UP','DOWN'); count($('#cW'),c.right,'RIGHT','LEFT');
+      $('#turrets').scrollIntoView({block:'center',behavior:calm()?'auto':'smooth'}); };
+    const sf=$('[data-savefix]'); if (sf) sf.onclick=()=>{ const o=this.offsets()||{v:0,h:0}, c=this.clicks(o,r), base=correction(r,l);
+      l.fixUp=base.up+c.up; l.fixRight=base.right+c.right; z.vIn=0; z.hIn=0; UIx.holes=[]; Store.save(); toast('Saved to the Locker'); go(); };
+    const mz=$('[data-mkzero]'); if (mz) mz.onclick=()=>{ r.zeroLoadId=l.id; r.loads.forEach(x=>{x.fixUp=null;x.fixRight=null;}); UIx.holes=[]; Store.save(); toast('Zero load updated'); go(); };
+  }
+},
+
+/* ===== Stands ===== */
+stands: { label:'Stands',
+  windNow(){ const w=Weather.at(Date.now()); return {dir:w.dir, mph:w.wind, src:w.src}; },
+  render(){
+    const w=this.windNow();
+    const view = ON_CLAUDE ? 'list' : (UIx.standView||'map');
+    return `<div class="wrap"><div class="row between"><h1>Stands</h1>${ON_CLAUDE?'':`<div class="seg"><button class="${view==='map'?'on':''}" data-sv="map">${ic('map',18)} Map</button><button class="${view==='list'?'on':''}" data-sv="list">List</button></div>`}</div>
+      ${ON_CLAUDE?`<div class="warn small" style="margin:10px 0">Maps, GPS and live weather work in your GitHub version of Treeline.</div>`:''}
+      ${view==='map'?this.mapHTML():''}
+      ${view==='list'?this.listHTML(w):''}</div>`;
+  },
+  mapHTML(){
+    return `<div id="mapcard"><div class="toolbar"><div class="seg">${Object.entries(CONFIG.maps).map(([k,v])=>`<button class="${S.mapStyle===k?'on':''}" data-ms="${k}">${esc(v.label)}</button>`).join('')}</div></div>
+      <div class="mapbox"><div id="map"></div><svg class="cross" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 3v9M15 18v9M3 15h9M18 15h9" stroke="#d8b46a" stroke-width="2.5" stroke-linecap="round"/><path d="M15 3v9M15 18v9M3 15h9M18 15h9" stroke="#000" stroke-opacity=".35" stroke-width="5" stroke-linecap="round" style="mix-blend-mode:multiply"/></svg></div>
+      <div class="toolbar"><button data-locate>${ic('pin',18)} Locate me</button><button class="${UIx.measure?'on':''}" data-measure>${ic('arc',18)} ${UIx.measure?'Measuring':'Measure'}</button><button class="brass" data-addcenter>${ic('plus',18)} Add stand at crosshair</button></div>
+      <div id="mappanel"></div></div>`;
+  },
+  panel(){ const el=$('#mappanel'); if (!el) return; let h='';
+    if (UIx.measure){ h = UIx.mB ? (()=>{ const yd=Math.round(Geo.yards(UIx.mA,UIx.mB)); return `<div class="card"><div class="big">${yd} yd</div><div class="row" style="margin-top:10px"><button class="brass" data-sendyd="${yd}">${ic('scope',18)} Use in the stand</button><button class="ghost" data-mclear>Measure again</button></div></div>`; })()
+        : `<div class="card small">${UIx.mA?'Now tap the spot you want to measure to.':'Tap a stand pin (or any spot) to start measuring.'}</div>`; }
+    else if (UIx.me){ h+=`<div class="card"><div class="small">You're here (accurate to about ${Math.round(UIx.me.acc*1.09361)} yd).</div><button class="brass" style="margin-top:10px" data-addme>${ic('plus',18)} Drop a stand where I'm standing</button></div>`; }
+    const st=S.stands.find(x=>x.id===UIx.selStand);
+    if (st && !UIx.measure){ const w=Weather.at(Date.now()), good=w.dir!=null&&(st.goodWinds||[]).includes(compass(w.dir));
+      h+=`<div class="card"><div class="hd"><div><h2>${esc(st.name)}</h2><div class="small muted">${st.height?st.height+' ft up · ':''}good winds ${(st.goodWinds||[]).join(', ')||'not set'}</div></div>${w.dir!=null?`<span class="badge" style="${good?'':'background:var(--ox);color:#fff'}">${good?'Good wind now':'Wrong wind now'}</span>`:''}</div>
+        ${w.dir!=null?`<p class="small" style="margin:8px 0 0">Wind ${Math.round(w.wind)} mph from ${compass(w.dir)}. The red cone shows where your scent is drifting.</p>`:''}
+        <div class="row" style="margin-top:10px"><button data-fcst="${st.id}">${ic('sun',18)} Forecast here</button><button data-edits="${st.id}">${ic('edit',18)} Edit</button></div></div>`; }
+    if (!h && !S.stands.length) h=`<div class="card small">Press and hold on the map, or line up the crosshair and tap <b>Add stand at crosshair</b>.</div>`;
+    el.innerHTML=h; this.bindPanel(); },
+  bindPanel(){
+    $$('#mappanel [data-fcst]').forEach(b=>b.onclick=()=>this.forecastHere(b.dataset.fcst));
+    $$('#mappanel [data-edits]').forEach(b=>b.onclick=()=>this.edit(S.stands.find(x=>x.id===b.dataset.edits),false));
+    const sy=$('[data-sendyd]'); if (sy) sy.onclick=()=>{ Screens.stand.st.yd=Math.max(10,Math.min(600,Math.round(+sy.dataset.sendyd/5)*5)); location.hash='stand'; };
+    const mc=$('[data-mclear]'); if (mc) mc.onclick=()=>{ UIx.mA=null; UIx.mB=null; MapKit.draw(); this.panel(); };
+    const am=$('[data-addme]'); if (am) am.onclick=()=>this.edit({id:uid(),name:'',lat:+UIx.me.lat.toFixed(5),lon:+UIx.me.lon.toFixed(5),height:'',goodWinds:[],notes:''},true);
+  },
+  forecastHere(id){ const st=S.stands.find(x=>x.id===id); S.location={name:st.name,lat:st.lat,lon:st.lon}; S.activeStandId=st.id; Store.save(); Weather.load(true); location.hash='forecast'; },
+  listHTML(w){
+    return `<p class="small muted">Wind right now: <b>${w.dir!=null?`${Math.round(w.mph)} mph from ${compass(w.dir)}`:'unknown'}</b>${w.src==='manual'?' (from the conditions you entered on Forecast)':''}. ${q('scent')}</p>
+      <div id="standlist">${S.stands.length?S.stands.map(st=>{ const good=w.dir!=null&&(st.goodWinds||[]).includes(compass(w.dir));
+        return `<div class="card"><div class="hd"><div><h2>${esc(st.name)}</h2><div class="small muted">${st.height?`${st.height} ft up · `:''}${st.lat&&st.lon?`${st.lat}, ${st.lon}`:'no coordinates yet'}</div></div>
+          ${w.dir!=null?`<span class="badge" style="${good?'':'background:var(--ox);color:#fff'}">${good?'Good wind now':'Wrong wind now'}</span>`:''}</div>
+          <svg viewBox="0 0 240 240" style="width:min(100%,260px);display:block;margin:10px auto" role="img" aria-label="Wind and scent diagram for ${esc(st.name)}">${Draw.stand(st,w.dir,w.mph)}</svg>
+          <div class="small" style="text-align:center">${w.dir!=null?`Your scent is drifting toward the <b>${DIRS[Math.round(((w.dir+180)%360)/45)%8]}</b>.`:''} Good winds: <b>${(st.goodWinds||[]).join(', ')||'none picked'}</b></div>
+          ${st.height?`<div class="small muted" style="text-align:center;margin-top:4px">Shot angle from ${st.height} ft: ${[15,25,40].map(y=>`${Math.round(Math.atan(st.height/(y*3))/DEG)}° at ${y} yd`).join(' · ')}</div>`:''}
+          ${st.notes?`<p class="small muted">${esc(st.notes)}</p>`:''}
+          <div class="row" style="margin-top:12px">${st.lat&&st.lon&&!ON_CLAUDE?`<button data-onmap="${st.id}">${ic('map',18)} On map</button>`:''}${st.lat&&st.lon?`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(st.lat+','+st.lon)}" target="_blank" rel="noopener" style="text-decoration:none"><button>${ic('map',18)} Map</button></a><button data-fcst="${st.id}">${ic('sun',18)} Forecast here</button>`:''}<button data-edits="${st.id}" aria-label="Edit stand">${ic('edit',18)}</button></div></div>`; }).join('')
+      :`<div class="card"><h2>Add your first stand</h2><p class="small muted">Save each stand with the winds it hunts well in. Forecast will then tell you which one fits the day's wind.</p><button class="pri" data-addstand>${ic('plus',18)} Add stand</button></div>`}</div>
+      <button class="brass" style="margin-top:4px" data-addstand>${ic('plus',18)} Add stand</button>`;
+  },
+  edit(st,isNew){
+    const box=openSheet(`<div class="hd"><h2>${isNew?'New stand':'Edit stand'}</h2><button class="ghost" data-x>Close</button></div>
+      <label for="st_n">Name</label><input id="st_n" value="${esc(st.name)}" placeholder="Creek stand">
+      <label for="st_c">Coordinates</label><input id="st_c" inputmode="decimal" value="${st.lat?esc(st.lat+', '+st.lon):''}" placeholder="32.2732, -89.9859"><div class="help">Press and hold the stand in Google Maps, copy the numbers, paste here.</div>
+      <label for="st_h">Height (ft)</label><input id="st_h" type="number" inputmode="decimal" value="${esc(st.height)}" placeholder="15">
+      <label>Good winds (where the wind comes from) ${q('stand')}</label><div class="choice" style="grid-template-columns:repeat(4,minmax(0,1fr))">${DIRS.map(d=>`<button type="button" class="${(st.goodWinds||[]).includes(d)?'on':''}" data-gw="${d}">${d}</button>`).join('')}</div>
+      <label for="st_no">Notes</label><textarea id="st_no" placeholder="Deer come from the bedding area to the east">${esc(st.notes)}</textarea>
+      <div class="row" style="margin-top:18px"><button class="pri" data-ss>Save</button>${isNew?'':`<button class="ghost" data-sd>Delete stand</button>`}</div>`);
+    const gw=new Set(st.goodWinds||[]);
+    box.addEventListener('click',e=>{ const g=e.target.closest('[data-gw]'); if (g){ const d=g.dataset.gw; gw.has(d)?gw.delete(d):gw.add(d); g.classList.toggle('on'); }
+      if (e.target.closest('[data-ss]')){ st.name=box.querySelector('#st_n').value||'Stand'; const m=box.querySelector('#st_c').value.match(/(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/);
+        if (m && Math.abs(+m[1])<=90 && Math.abs(+m[2])<=180){ st.lat=+m[1]; st.lon=+m[2]; }
+        st.height=+box.querySelector('#st_h').value||''; st.notes=box.querySelector('#st_no').value; st.goodWinds=DIRS.filter(d=>gw.has(d));
+        if (isNew) S.stands.push(st); UIx.selStand=st.id; Store.save(); box.remove(); go(); }
+      const d=e.target.closest('[data-sd]'); if (d){ if (!d.dataset.sure){ d.dataset.sure=1; d.textContent='Tap again to delete'; return; } S.stands=S.stands.filter(x=>x.id!==st.id); Store.save(); box.remove(); go(); } });
+  },
+  bind(){
+    $$('[data-addstand]').forEach(b=>b.onclick=()=>this.edit({id:uid(),name:'',lat:'',lon:'',height:'',goodWinds:[],notes:''},true));
+    $$('[data-edits]').forEach(b=>b.onclick=()=>this.edit(S.stands.find(x=>x.id===b.dataset.edits),false));
+    $$('[data-fcst]').forEach(b=>b.onclick=()=>this.forecastHere(b.dataset.fcst));
+    $$('[data-sv]').forEach(b=>b.onclick=()=>{ UIx.standView=b.dataset.sv; go(); });
+    $$('[data-onmap]').forEach(b=>b.onclick=()=>{ const st=S.stands.find(x=>x.id===b.dataset.onmap); UIx.selStand=st.id; UIx.mapView={lat:st.lat,lon:st.lon,z:17}; UIx.standView='map'; go(); });
+    $$('[data-ms]').forEach(b=>b.onclick=()=>{ S.mapStyle=b.dataset.ms; Store.save(); go(); });
+    const ac=$('[data-addcenter]'); if (ac) ac.onclick=()=>{ if (!MapKit.map){ toast('The map is still loading'); return; } const c=MapKit.map.getCenter(); this.edit({id:uid(),name:'',lat:+c.lat.toFixed(5),lon:+c.lng.toFixed(5),height:'',goodWinds:[],notes:''},true); };
+    const ms=$('[data-measure]'); if (ms) ms.onclick=()=>{ UIx.measure=!UIx.measure; UIx.mA=null; UIx.mB=null; const sel=S.stands.find(x=>x.id===UIx.selStand&&x.lat); if (UIx.measure&&sel) UIx.mA=[sel.lat,sel.lon];
+      ms.classList.toggle('on',UIx.measure); ms.lastChild.textContent=UIx.measure?' Measuring':' Measure'; MapKit.draw(); this.panel(); };
+    const lo=$('[data-locate]'); if (lo) lo.onclick=()=>{ if (!navigator.geolocation){ toast('Location isn\'t available on this device'); return; } lo.lastChild.textContent=' Finding you…';
+      navigator.geolocation.getCurrentPosition(p=>{ UIx.me={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy}; lo.lastChild.textContent=' Locate me';
+        if (MapKit.map) MapKit.map.setView([UIx.me.lat,UIx.me.lon],Math.max(MapKit.map.getZoom(),17)); MapKit.draw(); this.panel(); },
+        ()=>{ lo.lastChild.textContent=' Locate me'; toast('Location was blocked. Allow it in Chrome\'s site settings.'); },{enableHighAccuracy:true,timeout:15000}); };
+    if ($('#map')){ MapKit.mount(); this.panel(); }
+  }
+},
+
+/* ===== Hunt journal ===== */
+journal: { label:'Journal',
+  snapshot(t,standId){
+    const st=S.stands.find(x=>x.id===standId), lat=st&&st.lat?st.lat:S.location.lat, lon=st&&st.lon?st.lon:S.location.lon;
+    const d=new Date(t); d.setHours(0,0,0,0); const day=Astro.day(d.getTime(),lat,lon,S.legalMin,CONFIG.solunar);
+    const wx=Weather.at(t), sp=CONFIG.species[S.species]||CONFIG.species.deer, hs=huntScore({t,day,...wx},sp);
+    const sol=hs.parts.find(p=>p.k==='solunar'), lt=hs.parts.find(p=>p.k==='light');
+    return {score:hs.score, wind:wx.wind, dir:wx.dir!=null?compass(wx.dir):null, temp:wx.temp, pTrend:wx.pTrend, wxSrc:wx.src,
+      inSol:sol?sol.v>=.75:false, edge:lt?lt.v>=.7:false, moon:day.moon.name};
+  },
+  patterns(){
+    const L=S.log; if (L.length<3) return '';
+    const groups=[
+      ['Wind direction', e=>e.dir],
+      ['Stand', e=>e.standName],
+      ['Barometer', e=>e.pTrend==null?null:e.pTrend<=-.6?'falling':e.pTrend>=.6?'rising':'steady'],
+      ['Solunar', e=>e.inSol?'in a period':'between periods'],
+      ['Time of day', e=>e.edge?'dawn or dusk':'midday']];
+    const rows=groups.map(([name,fn])=>{ const m={}; for (const e of L){ const k=fn(e); if (k==null||k==='') continue; (m[k]=m[k]||[]).push(+e.seen||0); }
+      const list=Object.entries(m).map(([k,v])=>({k,n:v.length,avg:v.reduce((a,b)=>a+b,0)/v.length})).sort((a,b)=>b.avg-a.avg);
+      if (list.length<2) return ''; const max=Math.max(...list.map(x=>x.avg),1);
+      return `<h3 style="font-size:17px;margin:14px 0 6px">${name}</h3>${list.map(x=>`<div class="why" style="grid-template-columns:7.5em minmax(0,1fr) 5.5em;margin-bottom:4px"><span class="small">${esc(x.k)}</span><div class="meter"><i style="width:${Math.round(x.avg/max*100)}%;background:var(--brassbg)"></i></div><span class="tiny muted">${r1(x.avg)} seen · ${x.n} sit${x.n>1?'s':''}</span></div>`).join('')}`; }).join('');
+    return rows?`<div class="card"><h3>${ic('book')} What's working for you</h3><p class="small muted" style="margin:4px 0 0">Average animals seen per sit. More sits make this more trustworthy.</p>${rows}</div>`:'';
+  },
+  render(){
+    const L=[...S.log].sort((a,b)=>b.t-a.t), seen=L.reduce((a,e)=>a+(+e.seen||0),0), kills=L.filter(e=>e.harvest).length;
+    return `<div class="wrap"><div class="row between"><h1>Hunt journal</h1><button class="brass" id="logbtn" data-log>${ic('plus',18)} Log a sit</button></div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0"><div class="card" style="margin:0;text-align:center"><div class="big">${L.length}</div><div class="small muted">sits</div></div><div class="card" style="margin:0;text-align:center"><div class="big">${L.length?r1(seen/L.length):'0'}</div><div class="small muted">seen per sit</div></div><div class="card" style="margin:0;text-align:center"><div class="big">${kills}</div><div class="small muted">harvested</div></div></div>
+      ${this.patterns() || `<p class="small muted">${L.length<3?'Log three sits and Treeline starts showing which winds, stands and conditions produce for you.':'Patterns show up once your sits differ in wind, stand, barometer or time of day.'}</p>`}
+      ${L.map(e=>`<div class="card"><div class="hd"><div><h3>${new Date(e.t).toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})} · ${fmtT(e.t)}</h3><div class="small muted">${esc(e.standName||S.location.name)}${e.hours?` · ${e.hours} h`:''}</div></div>${e.harvest?'<span class="badge">Harvest</span>':''}</div>
+        <div class="small" style="margin-top:6px"><b>${+e.seen||0}</b> seen · score ${e.score} · ${e.dir?`${Math.round(e.wind)} mph ${e.dir}`:''} · ${e.temp!=null?Math.round(e.temp)+'°F':''} · ${esc(e.moon||'')}</div>
+        ${e.notes?`<p class="small muted" style="margin:6px 0 0">${esc(e.notes)}</p>`:''}<div class="row" style="margin-top:8px"><button class="ghost" data-dlog="${e.id}">Delete</button></div></div>`).join('')}</div>`;
+  },
+  add(){
+    const now=new Date(); now.setMinutes(now.getMinutes()-now.getTimezoneOffset()); const local=now.toISOString().slice(0,16);
+    const box=openSheet(`<div class="hd"><h2>Log a sit</h2><button class="ghost" data-x>Close</button></div>
+      <label for="lg_t">When you started</label><input id="lg_t" type="datetime-local" value="${local}">
+      <label for="lg_s">Stand</label><select id="lg_s"><option value="">${esc(S.location.name)}</option>${S.stands.map(st=>`<option value="${st.id}" ${st.id===S.activeStandId?'selected':''}>${esc(st.name)}</option>`).join('')}</select>
+      <div class="f2"><div><label for="lg_h">Hours sat</label><input id="lg_h" type="number" step=".5" inputmode="decimal" value="3"></div><div><label for="lg_n">Animals seen</label><input id="lg_n" type="number" inputmode="decimal" value="0"></div></div>
+      <label><input type="checkbox" id="lg_k" style="width:22px;min-height:22px"> Harvested</label>
+      <label for="lg_no">Notes</label><textarea id="lg_no" placeholder="Two does came in from the creek at 6:50"></textarea>
+      <p class="tiny muted">Wind, temperature, barometer, moon and hunt score are filled in automatically from the forecast for that time.</p>
+      <button class="pri wide" data-savelog>Save sit</button>`);
+    box.querySelector('[data-savelog]').onclick=()=>{ const t=new Date(box.querySelector('#lg_t').value).getTime()||Date.now(), sid=box.querySelector('#lg_s').value, st=S.stands.find(x=>x.id===sid);
+      S.log.push({id:uid(), t, standId:sid||null, standName:st?st.name:S.location.name, hours:+box.querySelector('#lg_h').value||'', seen:+box.querySelector('#lg_n').value||0,
+        harvest:box.querySelector('#lg_k').checked, notes:box.querySelector('#lg_no').value, ...this.snapshot(t,sid)});
+      Store.save(); box.remove(); toast('Sit logged'); go(); };
+  },
+  bind(){
+    $$('[data-log]').forEach(b=>b.onclick=()=>this.add());
+    $$('[data-dlog]').forEach(b=>b.onclick=()=>{ if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again to delete'; return; } S.log=S.log.filter(e=>e.id!==b.dataset.dlog); Store.save(); go(); });
+  }
+},
+
+/* ===== In the stand: one big answer, made for cold hands and low light ===== */
+stand: { label:'In the stand',
+  st:{yd:100, wind:0, from:'R', angle:false},
+  render(){
+    const r=rifle(), l=curLoad(), z=this.st, stand=S.stands.find(x=>x.id===S.activeStandId), ok=+l.bc>0&&+l.mv>0;
+    const day=Astro.day(midnight(0),S.location.lat,S.location.lon,S.legalMin,CONFIG.solunar), now=Date.now();
+    let light=''; if (day.legalStart&&day.legalEnd){ if (now<day.legalStart) light=`Legal light in ${Math.ceil((day.legalStart-now)/6e4)} min`; else if (now<day.legalEnd) light=`Legal light ends in ${Math.floor((day.legalEnd-now)/6e4)} min`; else light='Past legal light'; }
+    let main='Add BC and velocity in the Locker', sub='';
+    if (ok){ const ang=z.angle&&stand&&stand.height?-Math.atan(stand.height/(z.yd*3))/DEG:0;
+      const x=tbl(r,l,{...S.env,windMph:z.wind,windClock:z.from==='R'?3:9,inclineDeg:ang},[z.yd])[0];
+      if (x){ const up=Math.round(x.upClicks); main=Math.abs(x.dropIn)<.75?'DEAD ON':`HOLD ${r1(Math.abs(x.dropIn))}" ${x.dropIn<0?'HIGH':'LOW'}`;
+        sub=`or dial ${up===0?'nothing':`${up>0?'UP':'DOWN'} ${Math.abs(up)}`}${Math.abs(x.driftIn)>=.75?` · wind: hold ${r1(Math.abs(x.driftIn))}" ${x.driftIn<0?'right':'left'}`:''}${ang?` · ${Math.round(-ang)}° down`:''}`; } }
+    const chip=(k,v,lab)=>`<button class="${z[k]===v?'on':''}" data-sd="${k}|${v}">${lab}</button>`;
+    return `<div class="wrap" style="text-align:center">
+      <div class="row between"><a href="#forecast" style="text-decoration:none"><button class="ghost">Back</button></a><span class="small" style="color:var(--blaze)">${esc(light)}</span></div>
+      <div class="small muted" style="margin-top:8px">${esc(r.name)} · ${esc(l.name)}</div>
+      <div class="os" style="font-size:clamp(46px,14vw,84px);margin:20px 0 6px;color:#d8b46a">${esc(main)}</div><div class="small" style="min-height:1.5em">${esc(sub)}</div>
+      <div style="display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto;gap:6px;align-items:center;margin:22px 0 8px"><button style="padding:0 10px" data-step="-25" aria-label="25 yards closer">−25</button><button style="padding:0 12px" data-step="-5" aria-label="5 yards closer">−5</button><div class="os" style="font-size:40px">${z.yd}<span style="font-size:18px"> yd</span></div><button style="padding:0 12px" data-step="5" aria-label="5 yards farther">+5</button><button style="padding:0 10px" data-step="25" aria-label="25 yards farther">+25</button></div>
+      <div class="chips" style="justify-content:center">${[25,50,75,100,150,200,250,300].map(y=>chip('yd',y,y)).join('')}</div>
+      <div class="small muted" style="margin-top:16px">Wind (mph)</div><div class="chips" style="justify-content:center">${[0,5,10,15,20].map(w=>chip('wind',w,w)).join('')}</div>
+      ${z.wind?`<div class="chips" style="justify-content:center;margin-top:6px">${chip('from','L','From left')}${chip('from','R','From right')}</div>`:''}
+      ${stand&&stand.height?`<div style="margin-top:14px">${chip('angle',!z.angle,z.angle?`Using ${stand.height} ft stand angle`:`Add ${stand.height} ft stand angle`)}</div>`:''}
+      <p class="tiny muted" style="margin-top:22px">Based on your ${r.zeroYd}-yd zero. Confirm on paper before the season.</p></div>`;
+  },
+  bind(){
+    const z=this.st;
+    $$('[data-step]').forEach(b=>b.onclick=()=>{ z.yd=Math.max(10,Math.min(600,z.yd+ +b.dataset.step)); go(); });
+    $$('[data-sd]').forEach(b=>b.onclick=()=>{ const [k,v]=b.dataset.sd.split('|'); z[k]= k==='from'?v : k==='angle'?v==='true' : +v; go(); });
+    try{ if (navigator.wakeLock && !UIx.wl) navigator.wakeLock.request('screen').then(w=>{ UIx.wl=w; w.addEventListener('release',()=>UIx.wl=null); }).catch(()=>{}); }catch(e){}
+  }
+},
+
+/* ===== Setup ===== */
+setup: { label:'Setup',
+  render(){
+    const L=S.location;
+    return `<div class="wrap"><h1>Setup</h1>
+      <div class="card"><h3>${ic('pin')} Hunting spot</h3>
+        <label for="s_name">Name</label><input id="s_name" data-loc="name" value="${esc(L.name)}">
+        <label for="s_coords">Coordinates</label><input id="s_coords" data-coords value="${L.lat}, ${L.lon}" inputmode="decimal">
+        <div class="help">In Google Maps, press and hold your stand, copy the numbers that pop up (like 32.2732, -89.9859), and paste them here.</div>
+        <button style="margin-top:12px" data-gps>${ic('pin',18)} Use my phone's location</button></div>
+      <div class="card"><h3>${ic('target')} What you're hunting</h3><div class="choice">${Object.entries(CONFIG.species).map(([k,v])=>`<button class="${S.species===k?'on':''}" data-sp="${k}">${esc(v.label)}</button>`).join('')}</div>
+        <label for="s_legal">Legal light, minutes before and after ${q('legal')}</label><input id="s_legal" type="number" inputmode="decimal" data-legal value="${S.legalMin}">
+        <label for="s_alt">Elevation at your spot (ft)</label><input id="s_alt" type="number" inputmode="decimal" data-alt value="${S.env.altFt}"></div>
+      ${ON_CLAUDE?'':`<div class="card"><h3>${ic('rifle')} Install Treeline</h3><p class="small" style="margin-top:4px">Put Treeline on your home screen so it opens like an app and works offline in the woods.</p>
+        ${UIx.installEvt?`<button class="brass" data-install>Install app</button>`:`<p class="small muted">In Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> (or <b>Install app</b>). If it's already installed, you're set.</p>`}</div>`}
+      <div class="card"><h3>${ic('check')} Help</h3><div class="row"><button data-tours>Replay the guided tours</button><button data-wiz>Run first-time setup again</button></div></div>
+      <div class="card"><h3>${ic('gear')} Your data</h3><p class="small">${Store.mode==='cloud'?'Your rifles and settings save to your Claude account and follow you to any device where you open this page.':'Your rifles and settings are saved on this phone only. Copy a backup now and then.'}</p>
+        ${ON_CLAUDE?'':`<div class="row" style="margin-bottom:10px"><button class="brass" data-dlfile>Download backup file</button><label class="btnlike" style="margin:0"><input type="file" id="s_file" accept=".json,application/json" style="display:none"><span style="display:inline-flex;min-height:46px;align-items:center;padding:0 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer">Restore from file</span></label></div>`}
+        <div class="row"><button data-copy>Copy backup</button><button data-restore>Restore from backup</button></div>
+        <textarea id="s_backup" style="margin-top:12px" placeholder="Paste a backup here, then tap Restore"></textarea>
+        <button class="ghost" style="margin-top:12px" data-reset>Reset to sample data</button></div>
+      <div class="card"><h3>How the numbers work</h3><p class="small">Sun, moon and solunar times are calculated on your phone from your coordinates, so they work with no signal. The hunt score blends six factors weighted for your species. Ballistics use a standard drag model (G1/G7) with your BC, velocity, scope height, temperature and elevation. They'll get you on paper fast, but always confirm on paper before you hunt.</p></div></div>`;
+  },
+  bind(){
+    $('[data-loc]').onchange=e=>{ S.location.name=e.target.value; Store.save(); };
+    $('[data-coords]').onchange=e=>{ const m=e.target.value.match(/(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)/);
+      if (!m || Math.abs(+m[1])>90 || Math.abs(+m[2])>180){ toast('Couldn\'t read those coordinates'); return; }
+      S.location.lat=+m[1]; S.location.lon=+m[2]; Store.save(); Weather.load(true).then(()=>toast('Location saved')); };
+    $('[data-gps]').onclick=()=>{ if (!navigator.geolocation){ toast('Location isn\'t available here'); return; }
+      navigator.geolocation.getCurrentPosition(p=>{ S.location.lat=+p.coords.latitude.toFixed(4); S.location.lon=+p.coords.longitude.toFixed(4); Store.save(); Weather.load(true); go(); },
+        ()=>toast('Location is blocked here. Paste coordinates instead.'),{timeout:10000}); };
+    $$('[data-sp]').forEach(b=>b.onclick=()=>{ S.species=b.dataset.sp; Store.save(); go(); });
+    $('[data-legal]').onchange=e=>{ S.legalMin=+e.target.value||0; Store.save(); };
+    $('[data-alt]').onchange=e=>{ S.env.altFt=+e.target.value||0; Store.save(); };
+    $('[data-tours]').onclick=()=>{ S.tours={}; Store.save(); toast('Tours will play as you open each tab'); };
+    $('[data-wiz]').onclick=()=>Wizard.open();
+    const ins=$('[data-install]'); if (ins) ins.onclick=async()=>{ const e=UIx.installEvt; UIx.installEvt=null; try{ e.prompt(); await e.userChoice; }catch(_){} go(); };
+    const dl=$('[data-dlfile]'); if (dl) dl.onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));
+      a.download=`treeline-backup-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); toast('Backup saved to Downloads'); };
+    const fi=$('#s_file'); if (fi) fi.onchange=async()=>{ try{ const o=JSON.parse(await fi.files[0].text()); if (!o.rifles||!o.rifles.length) throw 0; S=upgrade(o); S.onboarded=true; Store.save(); toast('Restored'); go(); }catch(e){ toast('That file isn\'t a Treeline backup'); } };
+    $('[data-copy]').onclick=async()=>{ const txt=JSON.stringify(S); $('#s_backup').value=txt;
+      try{ await navigator.clipboard.writeText(txt); toast('Backup copied'); }catch(e){ $('#s_backup').select(); toast('Select the text and copy it'); } };
+    $('[data-restore]').onclick=()=>{ try{ const o=JSON.parse($('#s_backup').value); if (!o.rifles||!o.rifles.length) throw 0; S=upgrade(o); Store.save(); toast('Restored'); go(); }catch(e){ toast('That backup didn\'t read correctly'); } };
+    $('[data-reset]').onclick=e=>{ const b=e.currentTarget; if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again to erase everything'; return; } S=defaults(); S.onboarded=true; Store.save(); go(); };
+  }
+}
+};
+
+/* ---------- router: the tab bar is built from the Screens object ---------- */
+const ORDER = Object.keys(Screens);
+function go(){
+  const cur = ORDER.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'forecast';
+  $('#tabs').innerHTML = TABBAR.map(k=>`<a href="#${k}" class="${k===cur?'cur':''}" ${k===cur?'aria-current="page"':''}>${ic(NAVICON[k]||'target',24)}${Screens[k].label}</a>`).join('');
+  const y=window.scrollY;
+  try{ $('#view').innerHTML = Screens[cur].render(); Screens[cur].bind && Screens[cur].bind(); }
+  catch(err){ $('#view').innerHTML = `<div class="wrap"><div class="warn">Something broke on this screen: ${esc(err.message)}</div></div>`; console.error(err); }
+  if (UIx.lastTab===cur) window.scrollTo(0,y); else window.scrollTo(0,0);
+  document.body.classList.toggle('night', cur==='stand');
+  if (UIx.lastTab!==cur && S.onboarded && !$('.sheet')) setTimeout(()=>Coach.start(cur),400);
+  UIx.lastTab=cur;
+}
+window.addEventListener('hashchange', ()=>{ Coach.clear(); UIx.hour=null; if (MapKit.map && location.hash!=='#stands'){ MapKit.map.remove(); MapKit.map=null; } go(); });
+
+/* ---------- start ---------- */
+const saved = Store.local(); if (saved && saved.rifles && saved.rifles.length) S = upgrade(saved);
+Store.pill(); go();
+if (!S.onboarded) Wizard.open();
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); UIx.installEvt=e; if (location.hash==='#setup') go(); });
+if (!ON_CLAUDE && 'serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+Weather.load().then(()=>{ if (!$('.sheet')) go(); });
+Store.connect(remote=>{
+  if (remote && remote.rifles && remote.rifles.length && (remote.updated||0) >= (S.updated||0)){
+    S=upgrade(remote); Store.saveLocal(S); const w=$('.sheet'); if (w && S.onboarded) w.remove(); go(); }
+  else if (S.updated) Store.push();
+});
+}
+</script>
+</body></html>

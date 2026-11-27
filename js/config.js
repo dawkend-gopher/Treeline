@@ -20,6 +20,16 @@
    ===================================================================== */
 
 /* ---------- 1. CONFIG ---------- */
+/* RELEASE: bump the version and write a line or two whenever you publish changes.
+   Testers see these notes once, the first time they open the new version. */
+const RELEASE = {
+  version: '1.5',
+  notes: [
+    'Your data is now protected during updates: Treeline keeps automatic daily snapshots and will never overwrite data it can\'t read.',
+    'Range card: G7 BCs, reticle hash-mark holdovers, and a range card you can save as a picture.'
+  ]
+};
+
 const CONFIG = {
   defaultLocation: {name:'Brandon, MS', lat:32.2732, lon:-89.9859},
   legalLightMin: 30,                    // minutes before sunrise / after sunset

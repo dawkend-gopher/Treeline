@@ -25,7 +25,12 @@ Screens.setup = { label:'Setup',
         <div class="row"><button data-copy>Copy backup</button><button data-restore>Restore from backup</button></div>
         <textarea id="s_backup" style="margin-top:12px" placeholder="Paste a backup here, then tap Restore"></textarea>
         ${Backup.safety()?`<div class="warn small" style="margin-top:12px">A safety copy from ${new Date(Backup.safety().at).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} is saved (before your last ${esc(Backup.safety().why)}). <button class="ghost" data-undo style="margin-top:6px">Undo and go back to it</button></div>`:''}
+        ${Snapshots.list().length?`<h3 style="margin-top:16px">Automatic snapshots</h3><p class="tiny muted">A copy from each of the last ${Snapshots.MAX} days you opened Treeline, kept on this phone.</p>
+          ${Snapshots.list().map((x,i)=>`<button class="ghost" style="margin-top:6px" data-snap="${i}">${new Date(x.at).toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} · ${arr(x.data.rifles).length} rifle(s), ${arr(x.data.log).length} sit(s)</button>`).join('')}`:''}
         <button class="ghost" style="margin-top:12px" data-reset>Reset to sample data</button></div>
+      ${CHANNEL==='dev'?`<div class="card"><h3>Preview copy</h3><p class="small">This is the test version at /dev/. It keeps its own data, separate from the real app, so nothing you do here touches anyone's real data.</p>
+        <button data-devcopy>Copy my real data into the preview</button></div>`:''}
+      <p class="tiny muted" style="text-align:center">Treeline ${esc(RELEASE.version)}${CHANNEL==='dev'?' · preview':''} · data format ${SCHEMA}</p>
       <div class="card"><h3>How the numbers work</h3><p class="small">Sun, moon and solunar times are calculated on your phone from your coordinates, so they work with no signal. The hunt score blends six factors weighted for your species. Ballistics use a standard drag model (G1/G7) with your BC, velocity, scope height, temperature and elevation. They'll get you on paper fast, but always confirm on paper before you hunt.</p></div></div>`;
   },
   bind(){
@@ -39,15 +44,19 @@ Screens.setup = { label:'Setup',
     $$('[data-sp]').forEach(b=>b.onclick=()=>{ S.species=b.dataset.sp; Store.save(); go(); });
     $('[data-legal]').onchange=e=>{ S.legalMin=+e.target.value||0; Store.save(); };
     $('[data-alt]').onchange=e=>{ S.env.altFt=+e.target.value||0; Store.save(); };
+    $$('[data-snap]').forEach(b=>b.onclick=()=>{ if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again to go back to this snapshot'; return; }
+      if (Snapshots.restore(+b.dataset.snap)){ toast('Restored. A safety copy of your current data was kept.'); go(); } });
+    const dc=$('[data-devcopy]'); if (dc) dc.onclick=()=>{ try{ const o=JSON.parse(localStorage.getItem('treeline.v1')||'null'); if (!o) throw 0;
+      Backup.keepSafety('copy from real app'); S=upgrade(o); S.onboarded=true; Store.save(); toast('Copied. Your real data was not changed.'); go(); }catch(e){ toast('No real-app data found on this phone'); } };
     $('[data-g7]').onchange=e=>{ S.useG7=e.target.checked; Store.save(); toast(S.useG7?'Using G7 when available':'Using G1 only'); };
     $('[data-tours]').onclick=()=>{ S.tours={}; Store.save(); toast('Tours will play as you open each tab'); };
     $('[data-wiz]').onclick=()=>Wizard.open();
     const ins=$('[data-install]'); if (ins) ins.onclick=async()=>{ const e=UIx.installEvt; UIx.installEvt=null; try{ e.prompt(); await e.userChoice; }catch(_){} go(); };
     const dl=$('[data-dlfile]'); if (dl) dl.onclick=()=>{ Backup.download(); go(); };
-    const fi=$('#s_file'); if (fi) fi.onchange=async()=>{ try{ const o=JSON.parse(await fi.files[0].text()); if (!o.rifles||!o.rifles.length) throw 0; Backup.keepSafety('restore'); S=upgrade(o); S.onboarded=true; Store.save(); toast('Restored. A safety copy of your old data was kept.'); go(); }catch(e){ toast('That file isn\'t a Treeline backup'); } };
+    const fi=$('#s_file'); if (fi) fi.onchange=async()=>{ try{ const o=JSON.parse(await fi.files[0].text()); if (!o.rifles||!o.rifles.length) throw 0; if ((+o.schema||1)>SCHEMA){ toast('That backup is from a newer Treeline. Reload the app first.'); return; } Backup.keepSafety('restore'); S=upgrade(o); S.onboarded=true; Store.save(); toast('Restored. A safety copy of your old data was kept.'); go(); }catch(e){ toast('That file isn\'t a Treeline backup'); } };
     $('[data-copy]').onclick=async()=>{ const txt=JSON.stringify(S); $('#s_backup').value=txt;
       try{ await navigator.clipboard.writeText(txt); S.lastBackup=Date.now(); Store.save(); toast('Backup copied'); }catch(e){ $('#s_backup').select(); toast('Select the text and copy it'); } };
-    $('[data-restore]').onclick=e=>{ const b=e.currentTarget; try{ const o=JSON.parse($('#s_backup').value); if (!o.rifles||!o.rifles.length) throw 0;
+    $('[data-restore]').onclick=e=>{ const b=e.currentTarget; try{ const o=JSON.parse($('#s_backup').value); if (!o.rifles||!o.rifles.length) throw 0; if ((+o.schema||1)>SCHEMA){ toast('That backup is from a newer Treeline. Reload the app first.'); return; }
       if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again: this replaces everything here'; return; }
       Backup.keepSafety('restore'); S=upgrade(o); Store.save(); toast('Restored. A safety copy of your old data was kept.'); go(); }catch(e){ toast('That backup didn\'t read correctly'); } };
     $('[data-reset]').onclick=e=>{ const b=e.currentTarget; if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again to erase everything'; return; } Backup.keepSafety('reset'); S=defaults(); S.onboarded=true; Store.save(); go(); };

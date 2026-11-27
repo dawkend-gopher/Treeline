@@ -1,4 +1,8 @@
-# Publishes the site to GitHub Pages every time anything is pushed to main.
+# Publishes the site to GitHub Pages.
+#   main branch -> https://dawkend-gopher.github.io/Treeline/      (the real app your testers use)
+#   dev branch  -> https://dawkend-gopher.github.io/Treeline/dev/  (preview copy with its own separate data)
+# Runs on every push to main. To refresh the preview after pushing to dev, run this workflow
+# from the Actions tab ("Run workflow" on main).
 name: Deploy site
 on:
   push:
@@ -19,9 +23,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: live
+      - uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: dev
+          path: preview
+      - name: Assemble site
+        run: |
+          mkdir _site
+          cp -r live/. _site/
+          rm -rf _site/.git _site/.github
+          if [ -f preview/index.html ]; then
+            mkdir _site/dev
+            cp -r preview/. _site/dev/
+            rm -rf _site/dev/.git _site/dev/.github _site/dev/dev
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4

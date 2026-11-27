@@ -1,12 +1,17 @@
 /* ---------- 3. STORE ---------- */
 const Store = (() => {
-  const KEY='treeline.v1'; let ref=null, mode='phone', timer=null, busy=false, again=false;
-  const local=()=>{ try{ return JSON.parse(localStorage.getItem(KEY)||'null'); }catch(e){ return null; } };
-  const saveLocal=s=>{ try{ localStorage.setItem(KEY, JSON.stringify(s)); }catch(e){} };
+  const KEY=KEYP+'v1'; let ref=null, mode='phone', timer=null, busy=false, again=false, locked=false, warned=false;
+  // read() never throws: it reports empty, ok (with the data) or bad (with the raw text, so nothing is lost).
+  function read(){ let raw=null; try{ raw=localStorage.getItem(KEY); }catch(e){ return {state:'bad', raw:null}; }
+    if (raw==null) return {state:'empty'};
+    try{ const o=JSON.parse(raw); if (!o || typeof o!=='object' || Array.isArray(o)) throw 0; return {state:'ok', data:o, raw}; }catch(e){ return {state:'bad', raw}; } }
+  const local=()=>{ const r=read(); return r.state==='ok'?r.data:null; };
+  const saveLocal=s=>{ if (locked) return; try{ localStorage.setItem(KEY, JSON.stringify(s)); }
+    catch(e){ if (!warned){ warned=true; toast('Phone storage is full, so changes may not save. Download a backup in Setup.'); } } };
   async function push(){ if (!ref) return; if (busy){ again=true; return; } busy=true;
     try{ await ref.set({json:JSON.stringify(S), updated:S.updated}); mode='cloud'; }catch(e){ mode='phone'; }
     busy=false; pill(); if (again){ again=false; push(); } }
-  function save(){ S.updated=Date.now(); saveLocal(S); clearTimeout(timer); timer=setTimeout(push,800); }
+  function save(){ if (locked) return; S.updated=Date.now(); saveLocal(S); clearTimeout(timer); timer=setTimeout(push,800); }
   async function connect(onLoad){
     try{
       if (!window.claude || !claude.use) return;
@@ -17,8 +22,8 @@ const Store = (() => {
       onLoad(remote);
     }catch(e){ mode='phone'; } pill();
   }
-  function pill(){ $('#savePill').textContent = mode==='cloud' ? 'Saved to your account' : 'Saved on this phone'; }
-  return {local, save, saveLocal, connect, push, pill, get mode(){ return mode; }};
+  function pill(){ $('#savePill').textContent = locked ? 'Not saving' : CHANNEL==='dev' ? 'PREVIEW copy' : mode==='cloud' ? 'Saved to your account' : 'Saved on this phone'; }
+  return {KEY, read, local, save, saveLocal, connect, push, pill, lock(){ locked=true; clearTimeout(timer); }, get locked(){ return locked; }, get mode(){ return mode; }};
 })();
 
 const rifle = () => S.rifles.find(r=>r.id===S.activeRifleId) || S.rifles[0];
@@ -53,7 +58,7 @@ const dirWord = (n,pos,neg) => n===0 ? 'No change' : `${n>0?pos:neg} ${Math.abs(
 
 /* ---------- 4. WEATHER ---------- */
 const Weather = (() => {
-  const KEY='treeline.wx'; let data=null, status='idle';
+  const KEY=KEYP+'wx'; let data=null, status='idle';
   async function load(force){
     const {lat,lon}=S.location;
     try{ const c=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -141,9 +146,48 @@ const Backup = {
     setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
     S.lastBackup=Date.now(); Store.save(); toast('Backup saved to Downloads'); },
   // A safety copy is kept before anything that replaces your data, so it can be undone.
-  keepSafety(why){ try{ localStorage.setItem('treeline.prev', JSON.stringify({why, at:Date.now(), data:S})); }catch(e){} },
-  safety(){ try{ return JSON.parse(localStorage.getItem('treeline.prev')||'null'); }catch(e){ return null; } },
-  undo(){ const p=this.safety(); if (!p) return false; const cur=S; S=upgrade(p.data); try{ localStorage.setItem('treeline.prev', JSON.stringify({why:'undo', at:Date.now(), data:cur})); }catch(e){} Store.save(); return true; },
+  keepSafety(why){ try{ localStorage.setItem(KEYP+'prev', JSON.stringify({why, at:Date.now(), data:S})); }catch(e){} },
+  safety(){ try{ return JSON.parse(localStorage.getItem(KEYP+'prev')||'null'); }catch(e){ return null; } },
+  undo(){ const p=this.safety(); if (!p) return false; const cur=S; S=upgrade(p.data); try{ localStorage.setItem(KEYP+'prev', JSON.stringify({why:'undo', at:Date.now(), data:cur})); }catch(e){} Store.save(); return true; },
   // Ask Chrome not to clear Treeline's storage when the phone runs low on space.
   async persist(){ try{ if (!navigator.storage||!navigator.storage.persist) return null; if (await navigator.storage.persisted()) return true; return await navigator.storage.persist(); }catch(e){ return null; } }
+};
+
+/* ---------- 9. SNAPSHOTS: automatic daily copies (the last 3 days you opened the app) ---------- */
+const Snapshots = {
+  KEY: KEYP+'snaps', MAX: 3,
+  list(){ try{ const a=JSON.parse(localStorage.getItem(this.KEY)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } },
+  // Taken at start-up from the data exactly as it was saved, before any update touches it.
+  take(data, force){ const a=this.list(); const last=a[0];
+    if (!force && last && Date.now()-last.at < 20*HOUR && (+last.data.schema||1)===(+data.schema||1)) return;
+    a.unshift({at:Date.now(), app:RELEASE.version, data}); while (a.length>this.MAX) a.pop();
+    for (;;){ try{ localStorage.setItem(this.KEY, JSON.stringify(a)); return; }catch(e){ if (a.length<=1) return; a.pop(); } } },
+  restore(i){ const s=this.list()[i]; if (!s) return false; Backup.keepSafety('snapshot restore'); S=upgrade(s.data); S.onboarded=true; Store.save(); return true; }
+};
+
+/* ---------- 10. RESCUE: shown instead of the app if saved data can't be read. Nothing is ever erased. ---------- */
+const Rescue = {
+  KEY: KEYP+'rescue',
+  keep(raw){ if (raw==null) return; try{ localStorage.setItem(this.KEY, JSON.stringify({at:Date.now(), app:RELEASE.version, raw})); }catch(e){} },
+  download(raw){ const blob=new Blob([raw||''],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=`treeline-rescue-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); },
+  show(kind, raw, err){
+    Store.lock(); this.keep(raw); Store.pill(); $('#tabs').innerHTML='';
+    const snaps=Snapshots.list();
+    const why = kind==='newer' ? `Your data was saved by a <b>newer version</b> of Treeline than the one that just opened (probably an old offline copy). Your data is fine. Connect to the internet and tap <b>Reload</b>.`
+      : kind==='crash' ? `Treeline hit a problem while starting up${err?` (<span class="tiny">${esc(String(err.message||err))}</span>)`:''}. Your data has <b>not</b> been changed.`
+      : `Treeline couldn't read your saved data. It has <b>not</b> been changed or erased.`;
+    $('#view').innerHTML=`<div class="wrap"><h1>Your data is safe</h1>
+      <div class="card"><p class="small">${why}</p><p class="small">Saving is paused until you choose what to do, so nothing can be overwritten.</p>
+        <div class="row" style="margin-top:12px"><button class="brass" data-rs-reload>Reload</button><button data-rs-dl>Download my data</button></div></div>
+      ${snaps.length?`<div class="card"><h3>Go back to a snapshot</h3><p class="small">Treeline keeps a copy from each of the last days you opened it.</p>
+        ${snaps.map((x,i)=>`<button class="ghost" style="margin-top:8px" data-rs-snap="${i}">${new Date(x.at).toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} · ${arr(x.data.rifles).length} rifle(s), ${arr(x.data.log).length} sit(s)</button>`).join('')}</div>`:''}
+      ${kind==='newer'?'':`<div class="card"><h3>Start fresh</h3><p class="small">Only if nothing above works. Your current data stays stored as a rescue copy (and you can download it first), so it can still be recovered.</p>
+        <button class="ghost" data-rs-fresh>Start fresh</button></div>`}
+      <p class="tiny muted">If this keeps happening, send the downloaded file to whoever gave you Treeline.</p></div>`;
+    $('[data-rs-reload]').onclick=()=>location.reload();
+    $('[data-rs-dl]').onclick=()=>this.download(raw);
+    $$('[data-rs-snap]').forEach(b=>b.onclick=()=>{ const s=snaps[+b.dataset.rsSnap]; try{ localStorage.setItem(Store.KEY, JSON.stringify(s.data)); location.reload(); }catch(e){ toast('Couldn\'t restore that snapshot'); } });
+    const f=$('[data-rs-fresh]'); if (f) f.onclick=()=>{ if (f.dataset.sure){ try{ localStorage.removeItem(Store.KEY); }catch(e){} location.reload(); } else { f.dataset.sure=1; f.textContent='Tap again to start fresh'; } };
+  }
 };

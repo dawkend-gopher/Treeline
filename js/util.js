@@ -9,6 +9,9 @@ const r1 = n => (Math.round(n*10)/10).toFixed(1);
 const compass = d => ['N','NE','E','SE','S','SW','W','NW'][Math.round(d/45)%8];
 const midnight = off => { const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+off); return d.getTime(); };
 const ON_CLAUDE = !!window.claude || /claude/.test(location.hostname);
+// The preview copy of the site lives at /dev/ and keeps its own, separate data.
+const CHANNEL = /\/dev\/?$|\/dev\//.test(location.pathname) ? 'dev' : 'live';
+const KEYP = CHANNEL==='dev' ? 'treeline-dev.' : 'treeline.';
 const calm = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
 
@@ -45,14 +48,38 @@ function defaults(){
   return {v:2, updated:0, onboarded:false, tours:{}, species:'deer', legalMin:CONFIG.legalLightMin, location:{...CONFIG.defaultLocation},
     env:{tempF:55, altFt:300, windMph:10, windClock:3, inclineDeg:0, step:25, max:400, mag:9, viewYd:200},
     manualWx:{temp:50, wind:6, dir:'N', trend:'steady', vsYesterday:'same', rain:'none'},
-    stands:[], activeStandId:null, log:[], mapStyle:'sat', lastBackup:0, backupSnooze:0,
+    schema:SCHEMA, seenVersion:RELEASE.version, stands:[], activeStandId:null, log:[], mapStyle:'sat', lastBackup:0, backupSnooze:0,
     activeRifleId:rid,
     rifles:[{id:rid, name:'Sample deer rifle', caliber:'.308 Win', sightIn:1.5, clickUnit:'MOA', clickValue:.25, zeroYd:100, twist:'1:10',
       notes:'Sample — tap Edit and enter your own rifle.', zeroLoadId:a, activeLoadId:a,
       loads:[{id:a, name:'Sample 150 gr factory', kind:'Factory', grains:150, bc:.4, model:'G1', mv:2820, notes:'Sample numbers — copy BC and velocity from your box.', fixUp:null, fixRight:null},
              {id:b, name:'Sample 165 gr handload', kind:'Handload', grains:165, bc:.435, model:'G1', mv:2650, powder:'', charge:'', primer:'', coal:'', notes:'Sample — enter your own load.', fixUp:null, fixRight:null}]}]};
 }
-function upgrade(o){ const d=defaults(); const s={...d,...o,env:{...d.env,...(o.env||{})},manualWx:{...d.manualWx,...(o.manualWx||{})},tours:o.tours||{},stands:o.stands||[],log:o.log||[]};
+/* ---------- Saved-data format ----------
+   SCHEMA is the version of how data is stored. If you ever change the SHAPE of saved data
+   (rename a field, move something), bump SCHEMA and add a step to MIGRATIONS that converts
+   the old shape to the new one. Rules that keep testers safe:
+     1. Never delete or rename a user's field without a migration step.
+     2. New fields need a default (add it in defaults() or read it with a fallback).
+     3. Run the tests before publishing: they load old saved data through the new code. */
+const SCHEMA = 2;
+const MIGRATIONS = {
+  2: s => s            // 1 → 2: format version number added; nothing else changed
+};
+function migrate(o){ let v=+o.schema||1; if (v>=SCHEMA) return o;
+  o=JSON.parse(JSON.stringify(o)); while (v<SCHEMA){ v++; o=(MIGRATIONS[v]||(x=>x))(o); o.schema=v; } return o; }
+const arr = a => Array.isArray(a) ? a.filter(x=>x && typeof x==='object') : [];
+function upgrade(o){ o=migrate(o||{}); const d=defaults();
+  const s={...d,...o,schema:Math.max(SCHEMA,+o.schema||0),env:{...d.env,...(o.env||{})},manualWx:{...d.manualWx,...(o.manualWx||{})},location:{...d.location,...(o.location||{})},
+    tours:o.tours&&typeof o.tours==='object'?o.tours:{},stands:arr(o.stands),log:arr(o.log)};
+  // Repair rifles and loads so a missing piece can never crash a screen. Unknown fields are kept as-is.
+  s.rifles=arr(o.rifles).map(r=>{ const loads=arr(r.loads).map(l=>({name:'Unnamed load',kind:'Factory',model:'G1',...l,id:l.id||uid()}));
+    if (!loads.length) loads.push({id:uid(),name:'New load',kind:'Factory',model:'G1',grains:'',bc:'',mv:''});
+    return {name:'Unnamed rifle',caliber:'',sightIn:1.5,clickUnit:'MOA',clickValue:.25,zeroYd:100,...r,id:r.id||uid(),loads,
+      activeLoadId:loads.some(l=>l.id===r.activeLoadId)?r.activeLoadId:loads[0].id}; });
+  if (!s.rifles.length) s.rifles=d.rifles;
+  if (!s.rifles.some(r=>r.id===s.activeRifleId)) s.activeRifleId=s.rifles[0].id;
+  s.seenVersion=o.seenVersion||'';   // brand-new users start current; existing data sees the update notes once
   if (o.onboarded===undefined) s.onboarded = !!o.updated; return s; }
 let S = defaults();
 

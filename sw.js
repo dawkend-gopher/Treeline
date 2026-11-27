@@ -1,6 +1,6 @@
 /* Treeline offline helper. Bump VERSION whenever you upload a new index.html. */
-const VERSION = 'treeline-c1';
-const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
+const VERSION = 'treeline-c2';
+const SHELL = ['./', './index.html', './ammo.json', './manifest.json', './icon-192.png', './icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'];
 const TILE_HOSTS = ['server.arcgisonline.com', 'tile.opentopomap.org', 'tile.openstreetmap.org'];
@@ -17,17 +17,17 @@ async function trimTiles(){ const c = await caches.open('tiles'); const keys = a
 self.addEventListener('fetch', e => {
   const req = e.request; if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.hostname.includes('open-meteo.com')) return;
-  if (TILE_HOSTS.some(h => url.hostname.endsWith(h))) {
+  if (url.hostname.includes('open-meteo.com')) return;                       // weather: always live (the app keeps its own copy)
+  if (TILE_HOSTS.some(h => url.hostname.endsWith(h))) {                       // map squares: saved as you view them
     e.respondWith(caches.open('tiles').then(async c => { const hit = await c.match(req); if (hit) return hit;
       const res = await fetch(req); if (res.ok || res.type === 'opaque') { c.put(req, res.clone()); trimTiles(); } return res; }));
     return;
   }
-  if (req.mode === 'navigate' || url.origin === location.origin) {
+  if (req.mode === 'navigate' || url.origin === location.origin) {             // the app itself: newest when online, saved copy offline
     e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); return res; })
       .catch(() => caches.match(req).then(r => r || caches.match('./index.html'))));
     return;
   }
-  e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
+  e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {   // fonts and the map library: saved after first use
     const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); return res; })));
 });

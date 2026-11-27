@@ -644,6 +644,51 @@ const MapKit = {
   }
 };
 
+/* ---------- FACTORY AMMO LIST (ammo.json, loaded only when the picker opens) ---------- */
+const AmmoDB = {
+  list:null, loading:null,
+  load(){ if (this.list) return Promise.resolve(this.list); if (this.loading) return this.loading;
+    this.loading=fetch('ammo.json').then(r=>{ if (!r.ok) throw 0; return r.json(); }).then(j=>{ this.list=j; return j; }).catch(e=>{ this.loading=null; throw e; });
+    return this.loading; },
+  // "308 Winchester", ".308 Win" and "308" all become comparable keys
+  key(c){ return String(c||'').toLowerCase().replace(/winchester/g,'win').replace(/remington/g,'rem').replace(/magnum/g,'mag').replace(/creedmoor/g,'cm')
+    .replace(/springfield|sprg|spfld/g,'').replace(/[^a-z0-9]/g,''); },
+  fits(entryCal,rifleCal){ const a=this.key(entryCal), r=this.key(rifleCal); return !!r && (a===r || a.startsWith(r) || r.startsWith(a)); },
+  label(e){ return `${e.b} ${e.l} ${e.gr} gr ${e.bu}`; },
+  notes(e){ return `From ${e.b}'s published specs${e.p?` (part ${e.p})`:''}.${e.g7?` G7 BC ${e.g7}.`:''} Source: ${e.s}`; }
+};
+function ammoPicker(rifleCal, onPick){
+  const box=openSheet(`<div class="hd"><h2>Pick your ammo</h2><button class="ghost" data-x>Close</button></div>
+    <input id="ap_q" type="search" placeholder="Search: hornady 150, fusion, eld-x" autocomplete="off" style="margin-top:6px">
+    <div class="row" style="margin:10px 0" id="ap_opts"></div><div id="ap_list" class="small muted">Loading the list…</div>
+    <p class="tiny muted" style="margin-top:12px">Numbers come from each maker's published specs. Your rifle may shoot a little slower than the box says, so true your velocity on the Range card for best results.</p>`);
+  let only=true;
+  const draw=()=>{ const list=AmmoDB.list, el=box.querySelector('#ap_list'); if (!list) return;
+    const fitting=list.filter(e=>AmmoDB.fits(e.c,rifleCal)), useOnly=only && fitting.length>0;
+    box.querySelector('#ap_opts').innerHTML = fitting.length ? `<button class="${useOnly?'on':''}" data-only>${useOnly?'Showing':'Show only'} ${esc(rifleCal)}</button>${useOnly?'<button class="ghost" data-all>Show all calibers</button>':''}`
+      : `<span class="tiny muted">${rifleCal?`Nothing listed for "${esc(rifleCal)}" yet. Showing all calibers.`:'Showing all calibers.'}</span>`;
+    const words=box.querySelector('#ap_q').value.toLowerCase().split(/\s+/).filter(Boolean);
+    const hits=(useOnly?fitting:list).filter(e=>{ const h=`${e.b} ${e.l} ${e.c} ${e.gr} ${e.gr}gr ${e.bu} ${e.p||''}`.toLowerCase(); return words.every(w=>h.includes(w)); })
+      .sort((a,b)=>a.c.localeCompare(b.c)||a.b.localeCompare(b.b)||a.gr-b.gr);
+    el.className='';
+    el.innerHTML = hits.length ? hits.slice(0,80).map(e=>`<button class="ammo-row" data-aid="${esc(e.id)}" style="width:100%;justify-content:space-between;text-align:left;margin-bottom:8px;padding:10px 14px;min-height:56px">
+        <span><b>${esc(e.b)} ${esc(e.l)}</b><br><span class="small muted">${esc(e.c)} · ${e.gr} gr ${esc(e.bu)}</span></span>
+        <span class="small" style="text-align:right;white-space:nowrap">${e.mv} fps<br><span class="muted">BC ${e.bc}</span></span></button>`).join('') + (hits.length>80?`<p class="tiny muted">Showing 80 of ${hits.length}. Type more to narrow it down.</p>`:'')
+      : `<p class="small muted">No matches. Try fewer words, or close this and type the numbers from your box.</p>`; };
+  box.addEventListener('input',e=>{ if (e.target.id==='ap_q') draw(); });
+  box.addEventListener('click',e=>{ if (e.target.closest('[data-only]')){ only=true; draw(); } if (e.target.closest('[data-all]')){ only=false; draw(); }
+    const r=e.target.closest('[data-aid]'); if (r){ const ent=AmmoDB.list.find(x=>x.id===r.dataset.aid); box.remove(); onPick(ent); } });
+  AmmoDB.load().then(draw).catch(()=>{ box.querySelector('#ap_list').textContent='The ammo list couldn\'t load. Check your signal, or type the numbers from your box.'; });
+}
+// Fill an open load form from a picked entry
+function fillLoadForm(box,e){
+  const set=(k,v)=>{ const el=box.querySelector('#f_'+k); if (el && v!=null) el.value=v; };
+  set('name',AmmoDB.label(e)); set('grains',e.gr); set('bc',e.bc); set('mv',e.mv); set('model','G1'); set('testBarrel',e.tb||''); set('mvChrono',''); set('notes',AmmoDB.notes(e));
+  const k=box.querySelector('#f_kind'); if (k){ k.value='Factory'; k.dispatchEvent(new Event('change',{bubbles:true})); }
+  toast('Filled in from the list');
+}
+const PICK_BTN = `<button type="button" class="brass wide" data-pickammo style="margin:10px 0 4px">Pick from list</button><div class="tiny muted" style="text-align:center">or type the numbers from your box below</div>`;
+
 /* ---------- sheets: forms, tips, coach ---------- */
 function openSheet(html){ const box=document.createElement('div'); box.className='sheet'; box.innerHTML=`<div role="dialog">${html}</div>`; document.body.appendChild(box);
   box.addEventListener('click',e=>{ if (e.target===box||e.target.closest('[data-x]')) box.remove(); }); return box; }
@@ -652,9 +697,9 @@ function tip(k){ const t=TIPS[k]; if (!t) return;
   if (t.pic==='turret' && !calm()) setTimeout(()=>{ const g=box.querySelector('#tipT'); if (g) g.style.transform='rotate(-48deg)'; },250); }
 document.addEventListener('click',e=>{ const b=e.target.closest('[data-tip]'); if (b){ e.preventDefault(); tip(b.dataset.tip); } });
 
-function sheet(title, fields, obj, onSave, extra=''){
+function sheet(title, fields, obj, onSave, extra='', top=''){
   const box=document.createElement('div'); box.className='sheet';
-  const draw=()=>{ box.innerHTML=`<div role="dialog" aria-label="${esc(title)}"><div class="hd"><h2>${esc(title)}</h2><button class="ghost" data-x>Close</button></div>
+  const draw=()=>{ box.innerHTML=`<div role="dialog" aria-label="${esc(title)}"><div class="hd"><h2>${esc(title)}</h2><button class="ghost" data-x>Close</button></div>${top}
     ${fields.filter(f=>!f.when||f.when(obj)).map(f=>`<label for="f_${f.k}">${esc(f.label)}${f.tip?q(f.tip):''}</label>${
       f.type==='select' ? `<select id="f_${f.k}">${f.opts.map(o=>`<option ${obj[f.k]===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`
       : f.type==='textarea' ? `<textarea id="f_${f.k}">${esc(obj[f.k])}</textarea>`
@@ -698,7 +743,8 @@ const Wizard = {
         <label for="w4">Caliber</label><input id="w4" data-w="cal" placeholder=".270 Win" value="${esc(d.cal)}">
         <label>Turret clicks ${q('clicks')}</label><div class="chips">${chip('click','0.25','1/4 MOA')}${chip('click','0.125','1/8 MOA')}${chip('click','0.1','0.1 MIL')}</div>
         <label>Zero distance ${q('zero')}</label><div class="chips">${chip('zero',25,'25 yd')}${chip('zero',50,'50 yd')}${chip('zero',100,'100 yd')}${chip('zero',200,'200 yd')}</div>`,
-      ()=>`<h2>Your ammo</h2><p class="muted">These numbers are printed on most boxes. Skip this and you can add it later.</p>
+      ()=>`<h2>Your ammo</h2><p class="muted">Pick your box from the list, or type the numbers printed on it. You can skip this and add it later.</p>
+        <button type="button" class="brass wide" data-wpick style="margin:6px 0 4px">Pick from list</button>${d.src?`<div class="tiny muted">Filled in from ${esc(d.srcBrand)}'s published specs.</div>`:''}
         <label for="w5">Name</label><input id="w5" data-w="lname" placeholder="Federal 130 gr" value="${esc(d.lname)}">
         <div class="f2"><div><label for="w6">Bullet (gr)</label><input id="w6" data-w="grains" type="number" inputmode="decimal" value="${esc(d.grains)}"></div>
         <div><label for="w7">BC ${q('bc')}</label><input id="w7" data-w="bc" type="number" step=".001" inputmode="decimal" value="${esc(d.bc)}"></div></div>
@@ -706,7 +752,8 @@ const Wizard = {
     ];
     this.box.innerHTML=`<div role="dialog" aria-label="First-time setup"><div class="dots" style="margin-bottom:16px">${steps.map((_,j)=>`<i class="${j<=s?'on':''}"></i>`).join('')}</div>${steps[s]()}
       <div class="row" style="margin-top:20px">${s<steps.length-1?`<button class="pri" data-wn>Next</button>`:`<button class="pri" data-wf>Finish</button>`}${s>0?`<button data-wb>Back</button>`:''}<button class="ghost" data-ws>${s===0?'Skip setup':'Skip the rest'}</button></div></div>`;
-    this.box.onclick=e=>{ const c=e.target.closest('[data-wc]'); if (c){ this.read(); const [k,v]=c.dataset.wc.split('|'); this.d[k]=v; if (k==='click') this.d.unit= v==='0.1'?'MIL':'MOA'; this.draw(); return; }
+    this.box.onclick=e=>{ if (e.target.closest('[data-wpick]')){ this.read(); ammoPicker(this.d.cal, ent=>{ Object.assign(this.d,{lname:AmmoDB.label(ent), grains:ent.gr, bc:ent.bc, mv:ent.mv, tb:ent.tb||'', src:AmmoDB.notes(ent), srcBrand:ent.b}); this.draw(); }); return; }
+      const c=e.target.closest('[data-wc]'); if (c){ this.read(); const [k,v]=c.dataset.wc.split('|'); this.d[k]=v; if (k==='click') this.d.unit= v==='0.1'?'MIL':'MOA'; this.draw(); return; }
       if (e.target.closest('[data-wn]')){ this.read(); this.step++; this.draw(); }
       if (e.target.closest('[data-wb]')){ this.read(); this.step--; this.draw(); }
       if (e.target.closest('[data-wf]')||e.target.closest('[data-ws]')){ this.read(); this.finish(); } };
@@ -716,7 +763,7 @@ const Wizard = {
     S.species=d.species;
     if (d.rname.trim()){ const lid=uid(), hasLoad=+d.bc>0&&+d.mv>0;
       const r={id:uid(), name:d.rname.trim(), caliber:d.cal, sightIn:1.5, clickUnit:d.unit, clickValue:+d.click, zeroYd:+d.zero, twist:'', notes:'', zeroLoadId:lid, activeLoadId:lid,
-        loads:[{id:lid, name:d.lname||'My load', kind:'Factory', grains:+d.grains||'', bc:hasLoad?+d.bc:'', model:'G1', mv:hasLoad?+d.mv:'', notes:'', fixUp:null, fixRight:null}]};
+        loads:[{id:lid, name:d.lname||'My load', kind:'Factory', grains:+d.grains||'', bc:hasLoad?+d.bc:'', model:'G1', mv:hasLoad?+d.mv:'', testBarrel:d.tb||'', notes:d.src||'', fixUp:null, fixRight:null}]};
       S.rifles=[r]; S.activeRifleId=r.id; }
     S.onboarded=true; Store.save(); this.box.remove(); Weather.load(true).then(go); go();
   }
@@ -839,12 +886,15 @@ locker: { label:'Locker',
       sheet('New rifle',CONFIG.rifleFields,r,o=>{ S.rifles.push(o); S.activeRifleId=o.id; Store.save(); go(); }); });
     on('data-editl',v=>{ const [rid,lid]=v.split('|'), r=S.rifles.find(x=>x.id===rid), l=loadOf(r,lid);
       const extra=`<div class="row" style="margin-top:16px">${l.id!==r.zeroLoadId?`<button data-mkzero>Make this the zero load</button>`:''}${r.loads.length>1?`<button class="ghost" data-dell>Delete load</button>`:''}</div>`;
-      const box=sheet('Edit load',CONFIG.loadFields,{...l},o=>{ Object.assign(l,o); Store.save(); go(); },extra);
+      const box=sheet('Edit load',CONFIG.loadFields,{...l},o=>{ Object.assign(l,o); Store.save(); go(); },extra,PICK_BTN);
       box.addEventListener('click',e=>{
+        if (e.target.closest('[data-pickammo]')) ammoPicker(r.caliber, ent=>fillLoadForm(box,ent));
         if (e.target.closest('[data-mkzero]')){ r.zeroLoadId=l.id; r.loads.forEach(x=>{x.fixUp=null;x.fixRight=null;}); Store.save(); box.remove(); toast('Zero load changed'); go(); }
         const d=e.target.closest('[data-dell]'); if (d){ if (d.dataset.sure){ r.loads=r.loads.filter(x=>x.id!==l.id); if (r.zeroLoadId===l.id) r.zeroLoadId=r.loads[0].id; if (r.activeLoadId===l.id) r.activeLoadId=r.loads[0].id; Store.save(); box.remove(); go(); }
           else { d.dataset.sure=1; d.textContent='Tap again to delete'; } } }); });
-    on('data-addload',rid=>{ const r=S.rifles.find(x=>x.id===rid); sheet('New load',CONFIG.loadFields,{id:uid(),name:'New load',kind:'Factory',grains:'',bc:'',model:'G1',mv:'',notes:'',fixUp:null,fixRight:null},o=>{ r.loads.push(o); Store.save(); go(); }); });
+    on('data-addload',rid=>{ const r=S.rifles.find(x=>x.id===rid);
+      const box=sheet('New load',CONFIG.loadFields,{id:uid(),name:'New load',kind:'Factory',grains:'',bc:'',model:'G1',mv:'',notes:'',fixUp:null,fixRight:null},o=>{ r.loads.push(o); Store.save(); go(); },'',PICK_BTN);
+      box.addEventListener('click',e=>{ if (e.target.closest('[data-pickammo]')) ammoPicker(r.caliber, ent=>fillLoadForm(box,ent)); }); });
     on('data-delr',id=>{ const b=$(`[data-delr="${id}"]`); if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again to delete'; return; }
       S.rifles=S.rifles.filter(r=>r.id!==id); S.activeRifleId=S.rifles[0].id; Store.save(); go(); });
   }

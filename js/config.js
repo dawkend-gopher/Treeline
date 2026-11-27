@@ -32,6 +32,14 @@ const CONFIG = {
     street:{label:'Street',    url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png', opt:{maxZoom:19, attribution:'© OpenStreetMap contributors'}}
   },
   scentConeMeters: 250,
+  // Reticles. unit + step = what one hash mark is worth. Add your own here.
+  reticles: [
+    {name:'Duplex (plain crosshair)'},
+    {name:'MOA hash marks, 1 MOA apart', unit:'MOA', step:1},
+    {name:'MOA hash marks, 2 MOA apart', unit:'MOA', step:2},
+    {name:'MIL hash marks, 0.5 MIL apart', unit:'MIL', step:0.5},
+    {name:'MIL hash marks, 1 MIL apart', unit:'MIL', step:1}
+  ],
   fpsPerInch: 25,                       // velocity lost per inch of barrel shorter than the box's test barrel (rule of thumb)                    // only changes how the turret drawing spins
   // Each species = how much each factor matters (weights add to 1).
   species: {
@@ -49,6 +57,7 @@ const CONFIG = {
     {k:'clickUnit',label:'Turret unit',type:'select',opts:['MOA','MIL'],tip:'moa'},
     {k:'clickValue',label:'Value per click',type:'number',step:.025,tip:'clicks',help:'1/4 MOA = 0.25 · 1/8 MOA = 0.125 · 0.1 MIL = 0.1'},
     {k:'zeroYd',label:'Zero distance (yd)',type:'number',step:5,tip:'zero'},
+    {k:'reticle',label:'Reticle',type:'select',get opts(){ return CONFIG.reticles.map(x=>x.name); },tip:'reticle'},
     {k:'barrelIn',label:'Barrel length (in)',type:'number',step:.5,tip:'barrel'},
     {k:'twist',label:'Barrel twist',type:'text'},
     {k:'notes',label:'Notes',type:'textarea'}
@@ -59,6 +68,7 @@ const CONFIG = {
     {k:'grains',label:'Bullet weight (gr)',type:'number',step:1},
     {k:'bc',label:'Ballistic coefficient (BC)',type:'number',step:.001,tip:'bc'},
     {k:'model',label:'BC type',type:'select',opts:['G1','G7'],help:'Use G1 unless the box says G7.'},
+    {k:'bc7',label:'G7 BC (optional)',type:'number',step:.001,tip:'g7'},
     {k:'mv',label:'Box velocity (fps)',type:'number',step:5,tip:'mv'},
     {k:'testBarrel',label:'Box test-barrel length (in)',type:'number',step:.5,help:'Often printed near the velocity. 24 is common.'},
     {k:'mvChrono',label:'Chronograph velocity (fps), if you have it',type:'number',step:5,tip:'chrono'},
@@ -88,6 +98,8 @@ const TIPS = {
   truing:{t:'Truing',b:'Shoot at a long distance (200 to 300 yards), measure how far above or below the bullseye the group landed while aiming dead-on, and enter it. Treeline works backward to find the bullet speed that matches what really happened. This fixes every number in the app for that load.'},
   scent:{t:'Wind and scent',b:'Wind is named for where it comes from: a north wind blows from the north toward the south. Your scent drifts downwind, so a stand is good when animals usually approach from upwind of you.'},
   stand:{t:'Good winds',b:'Pick the wind directions that let you hunt this stand without your scent blowing toward where animals come from. Forecast then tells you which stand suits the day\'s wind.'},
+  g7:{t:'G7 BC',b:'A second BC number, measured against a sleeker reference bullet. Long, boat-tail hunting and match bullets fly more like that shape, so G7 predicts drop and drift more accurately past about 300 yards. If a load has one, Treeline uses it automatically (you can turn that off in Setup).'},
+  reticle:{t:'Reticle hash marks',b:'Many scopes have marks on the crosshair spaced a set amount apart, such as 2 MOA or 0.5 MIL; your scope manual says which. Pick yours and Treeline tells you which mark to put on the animal. On most scopes (second focal plane) the marks are only true at full power, so hold over at full power.'},
   mag:{t:'Scope power',b:'The scope view uses the field of view of a typical hunting scope at that power. Your scope may show slightly more or less.'}
 };
 

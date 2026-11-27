@@ -28,7 +28,19 @@ const curLoad = () => { const r=rifle(); return loadOf(r,r.activeLoadId)||r.load
 function effMV(r,l){ if (+l.mvTrued>0) return {v:+l.mvTrued, src:'trued'}; if (+l.mvChrono>0) return {v:+l.mvChrono, src:'chronograph'};
   const tb=+l.testBarrel||0, b=+r.barrelIn||0; if (tb>0 && b>0 && +l.mv>0) return {v:Math.round(+l.mv-(tb-b)*CONFIG.fpsPerInch), src:`adjusted for ${b}" barrel`};
   return {v:+l.mv, src:'box'}; }
-const Lp = (r,l) => ({...l, mv:effMV(r,l).v});
+// Load as the math sees it: true velocity, and the G7 BC when there is one (unless turned off in Setup)
+const usesG7 = l => S.useG7!==false && +l.bc7>0;
+const Lp = (r,l) => ({...l, mv:effMV(r,l).v, ...(usesG7(l)?{model:'G7', bc:+l.bc7}:{})});
+/* Reticle holdover: which hash mark to put on the target. */
+const reticleOf = r => CONFIG.reticles.find(x=>x.name===r.reticle) || CONFIG.reticles[0];
+function holdMarks(r,inches,yd){ const t=reticleOf(r); if (!t.unit || !(yd>0)) return null;
+  const units=inches/Ballistics.inPerUnit(t.unit,yd); return {units, marks:units/t.step, unit:t.unit, step:t.step}; }
+function marksText(m,dirWord){ if (!m) return ''; const n=Math.abs(m.marks), ord=k=>k+((k%100>=11&&k%100<=13)?'th':({1:'st',2:'nd',3:'rd'}[k%10]||'th'));
+  if (n<0.25) return 'Center of the crosshair';
+  const lo=Math.floor(n), f=n-lo, unit=`${r1(Math.abs(m.units))} ${m.unit}`;
+  if (f<0.2 && lo>0) return `${ord(lo)} mark ${dirWord} (${unit})`;
+  if (f>0.8) return `${ord(lo+1)} mark ${dirWord} (${unit})`;
+  return lo===0 ? `Just inside the 1st mark ${dirWord} (${unit})` : `Between the ${ord(lo)} and ${ord(lo+1)} marks ${dirWord} (${unit})`; }
 const tbl = (r,l,env,yards) => Ballistics.table(r,Lp(r,l),env,yards);
 const DIRS=['N','NE','E','SE','S','SW','W','NW'];
 function correction(r,l){
@@ -109,7 +121,7 @@ function ammoPicker(rifleCal, onPick){
 // Fill an open load form from a picked entry
 function fillLoadForm(box,e){
   const set=(k,v)=>{ const el=box.querySelector('#f_'+k); if (el && v!=null) el.value=v; };
-  set('name',AmmoDB.label(e)); set('grains',e.gr); set('bc',e.bc); set('mv',e.mv); set('model','G1'); set('testBarrel',e.tb||''); set('mvChrono',''); set('notes',AmmoDB.notes(e));
+  set('name',AmmoDB.label(e)); set('grains',e.gr); set('bc',e.bc); set('bc7',e.g7||''); set('mv',e.mv); set('model','G1'); set('testBarrel',e.tb||''); set('mvChrono',''); set('notes',AmmoDB.notes(e));
   const k=box.querySelector('#f_kind'); if (k){ k.value='Factory'; k.dispatchEvent(new Event('change',{bubbles:true})); }
   toast('Filled in from the list');
 }

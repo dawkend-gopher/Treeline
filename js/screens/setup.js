@@ -13,6 +13,8 @@ Screens.setup = { label:'Setup',
         <label for="s_alt">Elevation at your spot (ft)</label><input id="s_alt" type="number" inputmode="decimal" data-alt value="${S.env.altFt}"></div>
       ${ON_CLAUDE?'':`<div class="card"><h3>${ic('rifle')} Install Treeline</h3><p class="small" style="margin-top:4px">Put Treeline on your home screen so it opens like an app and works offline in the woods.</p>
         ${UIx.installEvt?`<button class="brass" data-install>Install app</button>`:`<p class="small muted">In Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> (or <b>Install app</b>). If it's already installed, you're set.</p>`}</div>`}
+      <div class="card"><h3>${ic('arc')} Ballistics</h3>
+        <label style="justify-content:space-between">Use the G7 BC when a load has one ${q('g7')}<input type="checkbox" data-g7 ${S.useG7!==false?'checked':''} style="width:26px;min-height:26px;flex:none"></label></div>
       <div class="card"><h3>${ic('check')} Help</h3><div class="row"><button data-tours>Replay the guided tours</button><button data-wiz>Run first-time setup again</button></div></div>
       <div class="card" id="datacard"><h3>${ic('gear')} Your data</h3>
         <p class="small">${Store.mode==='cloud'?'Your rifles and settings save to your Claude account and follow you to any device where you open this page.':'Your rifles, stands and journal are saved on this phone only.'}</p>
@@ -37,6 +39,7 @@ Screens.setup = { label:'Setup',
     $$('[data-sp]').forEach(b=>b.onclick=()=>{ S.species=b.dataset.sp; Store.save(); go(); });
     $('[data-legal]').onchange=e=>{ S.legalMin=+e.target.value||0; Store.save(); };
     $('[data-alt]').onchange=e=>{ S.env.altFt=+e.target.value||0; Store.save(); };
+    $('[data-g7]').onchange=e=>{ S.useG7=e.target.checked; Store.save(); toast(S.useG7?'Using G7 when available':'Using G1 only'); };
     $('[data-tours]').onclick=()=>{ S.tours={}; Store.save(); toast('Tours will play as you open each tab'); };
     $('[data-wiz]').onclick=()=>Wizard.open();
     const ins=$('[data-install]'); if (ins) ins.onclick=async()=>{ const e=UIx.installEvt; UIx.installEvt=null; try{ e.prompt(); await e.userChoice; }catch(_){} go(); };

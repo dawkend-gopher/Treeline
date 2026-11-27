@@ -61,7 +61,7 @@ const Wizard = {
     ];
     this.box.innerHTML=`<div role="dialog" aria-label="First-time setup"><div class="dots" style="margin-bottom:16px">${steps.map((_,j)=>`<i class="${j<=s?'on':''}"></i>`).join('')}</div>${steps[s]()}
       <div class="row" style="margin-top:20px">${s<steps.length-1?`<button class="pri" data-wn>Next</button>`:`<button class="pri" data-wf>Finish</button>`}${s>0?`<button data-wb>Back</button>`:''}<button class="ghost" data-ws>${s===0?'Skip setup':'Skip the rest'}</button></div></div>`;
-    this.box.onclick=e=>{ if (e.target.closest('[data-wpick]')){ this.read(); ammoPicker(this.d.cal, ent=>{ Object.assign(this.d,{lname:AmmoDB.label(ent), grains:ent.gr, bc:ent.bc, mv:ent.mv, tb:ent.tb||'', src:AmmoDB.notes(ent), srcBrand:ent.b}); this.draw(); }); return; }
+    this.box.onclick=e=>{ if (e.target.closest('[data-wpick]')){ this.read(); ammoPicker(this.d.cal, ent=>{ Object.assign(this.d,{lname:AmmoDB.label(ent), grains:ent.gr, bc:ent.bc, g7:ent.g7||'', mv:ent.mv, tb:ent.tb||'', src:AmmoDB.notes(ent), srcBrand:ent.b}); this.draw(); }); return; }
       const c=e.target.closest('[data-wc]'); if (c){ this.read(); const [k,v]=c.dataset.wc.split('|'); this.d[k]=v; if (k==='click') this.d.unit= v==='0.1'?'MIL':'MOA'; this.draw(); return; }
       if (e.target.closest('[data-wn]')){ this.read(); this.step++; this.draw(); }
       if (e.target.closest('[data-wb]')){ this.read(); this.step--; this.draw(); }
@@ -72,7 +72,7 @@ const Wizard = {
     S.species=d.species;
     if (d.rname.trim()){ const lid=uid(), hasLoad=+d.bc>0&&+d.mv>0;
       const r={id:uid(), name:d.rname.trim(), caliber:d.cal, sightIn:1.5, clickUnit:d.unit, clickValue:+d.click, zeroYd:+d.zero, twist:'', notes:'', zeroLoadId:lid, activeLoadId:lid,
-        loads:[{id:lid, name:d.lname||'My load', kind:'Factory', grains:+d.grains||'', bc:hasLoad?+d.bc:'', model:'G1', mv:hasLoad?+d.mv:'', testBarrel:d.tb||'', notes:d.src||'', fixUp:null, fixRight:null}]};
+        loads:[{id:lid, name:d.lname||'My load', kind:'Factory', grains:+d.grains||'', bc:hasLoad?+d.bc:'', model:'G1', bc7:hasLoad&&d.g7?+d.g7:'', mv:hasLoad?+d.mv:'', testBarrel:d.tb||'', notes:d.src||'', fixUp:null, fixRight:null}]};
       S.rifles=[r]; S.activeRifleId=r.id; }
     S.onboarded=true; Store.save(); this.box.remove(); Weather.load(true).then(go); go();
   }

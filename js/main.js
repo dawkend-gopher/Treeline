@@ -18,6 +18,7 @@ const saved = Store.local(); if (saved && saved.rifles && saved.rifles.length) S
 Store.pill(); go();
 if (!S.onboarded) Wizard.open();
 window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); UIx.installEvt=e; if (location.hash==='#setup') go(); });
+if (!ON_CLAUDE) Backup.persist().then(v=>{ UIx.persist=v; if (location.hash==='#setup') go(); });
 if (!ON_CLAUDE && 'serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 Weather.load().then(()=>{ if (!$('.sheet')) go(); });
 Store.connect(remote=>{

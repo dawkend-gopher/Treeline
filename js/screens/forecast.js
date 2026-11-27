@@ -29,6 +29,9 @@ Screens.forecast = { label:'Forecast',
       </div><div class="badge-score"><div class="num">${best?Math.round(best.s):'—'}</div><span>hunt score ${q('score')}</span></div></div>
     </div></section>
     <div class="wrap">
+      ${Backup.due()?`<div class="card" style="border:2px solid var(--brassbg)"><div class="hd"><h3>${ic('check')} Back up your data</h3></div>
+        <p class="small" style="margin:6px 0 12px">Your rifles, stands and journal are saved only on this phone. ${Backup.daysSince()==null?'You haven\'t saved a backup yet.':`Your last backup was ${Backup.daysSince()} days ago.`} One tap saves a copy to Downloads.</p>
+        <div class="row"><button class="brass" data-bk>Download backup</button><button class="ghost" data-bksnooze>Remind me in 3 days</button></div></div>`:''}
       <div class="card" id="stripcard"><div class="hd"><h3>${ic('clock')} Hour by hour</h3><span class="tiny muted">tap a bar</span></div>
         <div class="fig"><svg id="strip" role="img" aria-label="Hunt score for each hour"></svg></div>
         <div class="legend"><span><i class="sw" style="background:var(--brassbg)"></i>Best window</span><span><i class="sw" style="background:var(--green2)"></i>Legal light</span><span><i class="sw" style="background:var(--line)"></i>Not legal ${q('legal')}</span><span><i class="sw" style="background:var(--blaze)"></i>Now</span></div>
@@ -60,6 +63,8 @@ Screens.forecast = { label:'Forecast',
       <div><label>Rain</label>${opt('rain',[['none','None'],['light','Light'],['heavy','Heavy']])}</div></div>
       <button style="margin-top:14px" data-retry>Try live weather again</button></div>`; },
   bind(){
+    const bk=$('[data-bk]'); if (bk) bk.onclick=()=>{ Backup.download(); go(); };
+    const bs=$('[data-bksnooze]'); if (bs) bs.onclick=()=>{ S.backupSnooze=Date.now()+3*DAY; Store.save(); go(); };
     $$('[data-day]').forEach(b=>b.onclick=()=>{ UIx.dayOff=+b.dataset.day; UIx.hour=null; go(); });
     $$('[data-mw]').forEach(el=>el.onchange=()=>{ S.manualWx[el.dataset.mw]= el.type==='number'?+el.value:el.value; Store.save(); go(); });
     const rt=$('[data-retry]'); if (rt) rt.onclick=async()=>{ rt.textContent='Trying…'; await Weather.load(true); go(); };

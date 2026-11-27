@@ -115,3 +115,23 @@ function fillLoadForm(box,e){
 }
 const PICK_BTN = `<button type="button" class="brass wide" data-pickammo style="margin:10px 0 4px">Pick from list</button><div class="tiny muted" style="text-align:center">or type the numbers from your box below</div>`;
 
+
+/* ---------- BACKUPS: your data lives on this phone, so keep a copy ---------- */
+const Backup = {
+  EVERY_DAYS: 14,                                   // how often to remind you
+  hasData(){ return S.stands.length>0 || S.log.length>0 || S.rifles.some(r=>!/^Sample/.test(r.name)); },
+  daysSince(){ return S.lastBackup ? Math.floor((Date.now()-S.lastBackup)/DAY) : null; },
+  due(){ if (ON_CLAUDE || Store.mode==='cloud' || !this.hasData() || (S.backupSnooze||0)>Date.now()) return false;
+    return !S.lastBackup || Date.now()-S.lastBackup > this.EVERY_DAYS*DAY; },
+  download(){
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));
+    a.download=`treeline-backup-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+    S.lastBackup=Date.now(); Store.save(); toast('Backup saved to Downloads'); },
+  // A safety copy is kept before anything that replaces your data, so it can be undone.
+  keepSafety(why){ try{ localStorage.setItem('treeline.prev', JSON.stringify({why, at:Date.now(), data:S})); }catch(e){} },
+  safety(){ try{ return JSON.parse(localStorage.getItem('treeline.prev')||'null'); }catch(e){ return null; } },
+  undo(){ const p=this.safety(); if (!p) return false; const cur=S; S=upgrade(p.data); try{ localStorage.setItem('treeline.prev', JSON.stringify({why:'undo', at:Date.now(), data:cur})); }catch(e){} Store.save(); return true; },
+  // Ask Chrome not to clear Treeline's storage when the phone runs low on space.
+  async persist(){ try{ if (!navigator.storage||!navigator.storage.persist) return null; if (await navigator.storage.persisted()) return true; return await navigator.storage.persist(); }catch(e){ return null; } }
+};

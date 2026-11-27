@@ -14,10 +14,15 @@ Screens.setup = { label:'Setup',
       ${ON_CLAUDE?'':`<div class="card"><h3>${ic('rifle')} Install Treeline</h3><p class="small" style="margin-top:4px">Put Treeline on your home screen so it opens like an app and works offline in the woods.</p>
         ${UIx.installEvt?`<button class="brass" data-install>Install app</button>`:`<p class="small muted">In Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> (or <b>Install app</b>). If it's already installed, you're set.</p>`}</div>`}
       <div class="card"><h3>${ic('check')} Help</h3><div class="row"><button data-tours>Replay the guided tours</button><button data-wiz>Run first-time setup again</button></div></div>
-      <div class="card"><h3>${ic('gear')} Your data</h3><p class="small">${Store.mode==='cloud'?'Your rifles and settings save to your Claude account and follow you to any device where you open this page.':'Your rifles and settings are saved on this phone only. Copy a backup now and then.'}</p>
+      <div class="card" id="datacard"><h3>${ic('gear')} Your data</h3>
+        <p class="small">${Store.mode==='cloud'?'Your rifles and settings save to your Claude account and follow you to any device where you open this page.':'Your rifles, stands and journal are saved on this phone only.'}</p>
+        ${ON_CLAUDE||Store.mode==='cloud'?'':`<dl class="kv small" style="margin-bottom:12px"><dt>Last backup</dt><dd>${Backup.daysSince()==null?'Never':Backup.daysSince()===0?'Today':Backup.daysSince()+' days ago'}</dd>
+          <dt>Storage</dt><dd>${UIx.persist===true?'Protected':UIx.persist===false?'Chrome may clear it':'Checking…'}</dd></dl>
+          ${UIx.persist===false?`<p class="tiny muted" style="margin-top:-4px">Chrome only promises to keep a site's data once it's installed or used often. Installing Treeline to your home screen usually fixes this. Backups are your safety net either way.</p>`:''}`}
         ${ON_CLAUDE?'':`<div class="row" style="margin-bottom:10px"><button class="brass" data-dlfile>Download backup file</button><label class="btnlike" style="margin:0"><input type="file" id="s_file" accept=".json,application/json" style="display:none"><span style="display:inline-flex;min-height:46px;align-items:center;padding:0 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer">Restore from file</span></label></div>`}
         <div class="row"><button data-copy>Copy backup</button><button data-restore>Restore from backup</button></div>
         <textarea id="s_backup" style="margin-top:12px" placeholder="Paste a backup here, then tap Restore"></textarea>
+        ${Backup.safety()?`<div class="warn small" style="margin-top:12px">A safety copy from ${new Date(Backup.safety().at).toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} is saved (before your last ${esc(Backup.safety().why)}). <button class="ghost" data-undo style="margin-top:6px">Undo and go back to it</button></div>`:''}
         <button class="ghost" style="margin-top:12px" data-reset>Reset to sample data</button></div>
       <div class="card"><h3>How the numbers work</h3><p class="small">Sun, moon and solunar times are calculated on your phone from your coordinates, so they work with no signal. The hunt score blends six factors weighted for your species. Ballistics use a standard drag model (G1/G7) with your BC, velocity, scope height, temperature and elevation. They'll get you on paper fast, but always confirm on paper before you hunt.</p></div></div>`;
   },
@@ -35,13 +40,15 @@ Screens.setup = { label:'Setup',
     $('[data-tours]').onclick=()=>{ S.tours={}; Store.save(); toast('Tours will play as you open each tab'); };
     $('[data-wiz]').onclick=()=>Wizard.open();
     const ins=$('[data-install]'); if (ins) ins.onclick=async()=>{ const e=UIx.installEvt; UIx.installEvt=null; try{ e.prompt(); await e.userChoice; }catch(_){} go(); };
-    const dl=$('[data-dlfile]'); if (dl) dl.onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));
-      a.download=`treeline-backup-${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); toast('Backup saved to Downloads'); };
-    const fi=$('#s_file'); if (fi) fi.onchange=async()=>{ try{ const o=JSON.parse(await fi.files[0].text()); if (!o.rifles||!o.rifles.length) throw 0; S=upgrade(o); S.onboarded=true; Store.save(); toast('Restored'); go(); }catch(e){ toast('That file isn\'t a Treeline backup'); } };
+    const dl=$('[data-dlfile]'); if (dl) dl.onclick=()=>{ Backup.download(); go(); };
+    const fi=$('#s_file'); if (fi) fi.onchange=async()=>{ try{ const o=JSON.parse(await fi.files[0].text()); if (!o.rifles||!o.rifles.length) throw 0; Backup.keepSafety('restore'); S=upgrade(o); S.onboarded=true; Store.save(); toast('Restored. A safety copy of your old data was kept.'); go(); }catch(e){ toast('That file isn\'t a Treeline backup'); } };
     $('[data-copy]').onclick=async()=>{ const txt=JSON.stringify(S); $('#s_backup').value=txt;
-      try{ await navigator.clipboard.writeText(txt); toast('Backup copied'); }catch(e){ $('#s_backup').select(); toast('Select the text and copy it'); } };
-    $('[data-restore]').onclick=()=>{ try{ const o=JSON.parse($('#s_backup').value); if (!o.rifles||!o.rifles.length) throw 0; S=upgrade(o); Store.save(); toast('Restored'); go(); }catch(e){ toast('That backup didn\'t read correctly'); } };
-    $('[data-reset]').onclick=e=>{ const b=e.currentTarget; if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again to erase everything'; return; } S=defaults(); S.onboarded=true; Store.save(); go(); };
+      try{ await navigator.clipboard.writeText(txt); S.lastBackup=Date.now(); Store.save(); toast('Backup copied'); }catch(e){ $('#s_backup').select(); toast('Select the text and copy it'); } };
+    $('[data-restore]').onclick=e=>{ const b=e.currentTarget; try{ const o=JSON.parse($('#s_backup').value); if (!o.rifles||!o.rifles.length) throw 0;
+      if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again: this replaces everything here'; return; }
+      Backup.keepSafety('restore'); S=upgrade(o); Store.save(); toast('Restored. A safety copy of your old data was kept.'); go(); }catch(e){ toast('That backup didn\'t read correctly'); } };
+    $('[data-reset]').onclick=e=>{ const b=e.currentTarget; if (!b.dataset.sure){ b.dataset.sure=1; b.textContent='Tap again to erase everything'; return; } Backup.keepSafety('reset'); S=defaults(); S.onboarded=true; Store.save(); go(); };
+    const un=$('[data-undo]'); if (un) un.onclick=()=>{ if (Backup.undo()){ toast('Back to your safety copy'); go(); } };
   }
 };
 

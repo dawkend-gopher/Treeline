@@ -45,7 +45,7 @@ function defaults(){
   return {v:2, updated:0, onboarded:false, tours:{}, species:'deer', legalMin:CONFIG.legalLightMin, location:{...CONFIG.defaultLocation},
     env:{tempF:55, altFt:300, windMph:10, windClock:3, inclineDeg:0, step:25, max:400, mag:9, viewYd:200},
     manualWx:{temp:50, wind:6, dir:'N', trend:'steady', vsYesterday:'same', rain:'none'},
-    stands:[], activeStandId:null, log:[], mapStyle:'sat',
+    stands:[], activeStandId:null, log:[], mapStyle:'sat', lastBackup:0, backupSnooze:0,
     activeRifleId:rid,
     rifles:[{id:rid, name:'Sample deer rifle', caliber:'.308 Win', sightIn:1.5, clickUnit:'MOA', clickValue:.25, zeroYd:100, twist:'1:10',
       notes:'Sample — tap Edit and enter your own rifle.', zeroLoadId:a, activeLoadId:a,

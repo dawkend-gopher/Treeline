@@ -1,20 +1,51 @@
 /* ===== Forecast ===== */
 Screens.forecast = { label:'Forecast',
-  compute(){
-    const sp=CONFIG.species[S.species]||CONFIG.species.deer, d0=midnight(UIx.dayOff), {lat,lon}=S.location;
+  compute(off=UIx.dayOff){
+    const sp=CONFIG.species[S.species]||CONFIG.species.deer, d0=midnight(off), {lat,lon}=S.location;
     const day=Astro.day(d0,lat,lon,S.legalMin,CONFIG.solunar);
     const hours=[...Array(24)].map((_,h)=>{ const t=d0+h*HOUR+HOUR/2, wx=Weather.at(t); return {h,t,wx,...huntScore({t,day,...wx},sp)}; });
     const now=Date.now(); let best=null, overall=null;
     for (let h=0;h<23;h++){ const a=hours[h],b=hours[h+1]; if (!a.legal||!b.legal) continue;
       const w={s:(a.score+b.score)/2, start:d0+h*HOUR, end:d0+(h+2)*HOUR, h};
       if (!overall||w.s>overall.s) overall=w; if (w.end>now && (!best||w.s>best.s)) best=w; }
-    return {sp,day,hours,best:best||overall,overall,passed:!best&&!!overall};
+    // Best morning and best evening sit (split at solar noon), for the week view.
+    const noon=(day.sunrise&&day.sunset)?(day.sunrise+day.sunset)/2:d0+12*HOUR; let am=null, pm=null;
+    for (let h=0;h<23;h++){ const a=hours[h],b=hours[h+1]; if (!a.legal||!b.legal) continue;
+      const w={s:(a.score+b.score)/2, start:d0+h*HOUR, end:d0+(h+2)*HOUR, h};
+      if (w.end<=noon+HOUR){ if (!am||w.s>am.s) am=w; } else if (!pm||w.s>pm.s) pm=w; }
+    return {sp,day,hours,best:best||overall,overall,passed:!best&&!!overall,am,pm};
   },
+  /* ---------- This week: every day ranked by its best sit ---------- */
+  week(){
+    const key=[S.species,S.location.lat,S.location.lon,S.legalMin,Weather.status,midnight(0),JSON.stringify(S.manualWx),Math.floor(Date.now()/18e5)].join('|');
+    if (UIx.weekKey===key && UIx.weekData) return UIx.weekData;
+    const days=[...Array(7)].map((_,i)=>{ const F=i===UIx.dayOff&&UIx.F?UIx.F:this.compute(i), w=F.overall;
+      let good=[], watch=[];
+      if (w){ const hr=F.hours[w.h+1]||F.hours[w.h];
+        const GOOD={solunar:'solunar peak',pressure:'pressure',wind:'calm wind',temp:'cooling'}, BAD={solunar:'weak solunar',pressure:'pressure',wind:'wind',temp:'warm-up',rain:'rain'};
+        good=hr.parts.filter(p=>GOOD[p.k]&&p.v>=.75).sort((a,b)=>b.w*b.v-a.w*a.v).map(p=>GOOD[p.k]);
+        watch=hr.parts.filter(p=>BAD[p.k]&&p.v<.35&&p.w>=.1).map(p=>BAD[p.k]); }
+      return {i, d0:F.day.d0, day:F.day, best:w, am:F.am, pm:F.pm, good, watch}; });
+    const ranked=[...days].filter(d=>d.best).sort((a,b)=>b.best.s-a.best.s);
+    UIx.weekKey=key; UIx.weekData={days, top:ranked[0]?ranked[0].i:-1, ranks:Object.fromEntries(ranked.map((d,n)=>[d.i,n+1]))};
+    return UIx.weekData; },
+  weekCard(){
+    const W=this.week(), st=Weather.status, sit=w=>w?`${fmtT(w.start)} (<b>${Math.round(w.s)}</b>)`:'';
+    const rows=W.days.map(d=>{ const s=d.best?Math.round(d.best.s):0, top=d.i===W.top, label=d.i===0?'Today':d.i===1?'Tomorrow':new Date(d.d0).toLocaleDateString([], {weekday:'long'});
+      return `<button class="weekrow ${d.i===UIx.dayOff?'cur':''} ${top?'best':''}" data-day="${d.i}" aria-label="${label}, best hunt score ${s}">
+        <svg viewBox="-12 -12 24 24" width="26" height="26" aria-hidden="true">${Draw.moon(d.day.moon.fraction,d.day.moon.phase,10)}</svg>
+        <span class="wk-l"><span><b>${label}</b>${top?' <span class="badge" style="background:var(--brassbg);color:var(--ink);display:inline-block">Best day</span>':''}</span>
+          <span class="tiny muted">${new Date(d.d0).toLocaleDateString([], {month:'short',day:'numeric'})} ${d.am||d.pm?` · best sits ${[sit(d.am),sit(d.pm)].filter(Boolean).join(', ')}`:''}</span>
+          ${d.good.length||d.watch.length?`<span class="tiny">${d.good.length?`<span style="color:var(--green2)">Good ${esc(d.good.slice(0,3).join(', '))}</span>`:''}${d.good.length&&d.watch.length?' · ':''}${d.watch.length?`<span style="color:var(--ox)">Watch ${esc(d.watch.join(', '))}</span>`:''}</span>`:''}</span>
+        <span class="wk-s"><span class="wk-bar"><i style="width:${s}%;background:${top?'var(--brassbg)':'var(--green2)'}"></i></span><b>${d.best?s:'—'}</b></span></button>`; }).join('');
+    const note = st==='live'||st==='cached' ? 'Weather forecasts get less certain after about 3 days, so re-check later in the week.' : 'Live weather isn\'t loaded, so days are ranked on sun, moon and solunar only, using the conditions you entered.';
+    return `<div class="card" id="weekcard"><div class="hd"><h3>${ic('target')} This week</h3><span class="tiny muted">best 2-hour sit each day ${q('score')}</span></div>
+      <div class="weeklist">${rows}</div><div class="tiny muted" style="margin-top:8px">Tap a day to plan it. ${esc(note)}</div></div>`; },
   render(){
     const F=this.compute(); UIx.F=F; const {sp,day,hours,best}=F;
     if (UIx.hour==null) UIx.hour = UIx.dayOff===0 ? new Date().getHours() : (best?best.h:6);
     const sel=hours[UIx.hour], st=Weather.status;
-    const days=[...Array(7)].map((_,i)=>{ const d=new Date(midnight(i)); return `<button class="${i===UIx.dayOff?'on':''}" data-day="${i}">${i===0?'Today':d.toLocaleDateString([], {weekday:'short', day:'numeric'})}</button>`; }).join('');
+    const WK=this.week(); const days=[...Array(7)].map((_,i)=>{ const d=new Date(midnight(i)); return `<button class="${i===UIx.dayOff?'on':''}" data-day="${i}">${i===WK.top?'★ ':''}${i===0?'Today':d.toLocaleDateString([], {weekday:'short', day:'numeric'})}</button>`; }).join('');
     const settle = best ? Math.max(best.start-30*6e4, day.legalStart||best.start) : null;
     const rating=['Poor','Fair','Good','Excellent'][day.rating-1];
     const wxNote = st==='live' ? 'Live forecast from Open-Meteo.' : st==='cached' ? 'Offline: showing the last forecast saved on this phone.' : st==='loading' ? 'Loading forecast…' : 'Live weather can\'t load here, so the score uses the conditions you enter at the bottom.';
@@ -32,6 +63,7 @@ Screens.forecast = { label:'Forecast',
       ${Backup.due()?`<div class="card" style="border:2px solid var(--brassbg)"><div class="hd"><h3>${ic('check')} Back up your data</h3></div>
         <p class="small" style="margin:6px 0 12px">Your rifles, stands and journal are saved only on this phone. ${Backup.daysSince()==null?'You haven\'t saved a backup yet.':`Your last backup was ${Backup.daysSince()} days ago.`} One tap saves a copy to Downloads.</p>
         <div class="row"><button class="brass" data-bk>Download backup</button><button class="ghost" data-bksnooze>Remind me in 3 days</button></div></div>`:''}
+      ${this.weekCard()}
       <div class="card" id="stripcard"><div class="hd"><h3>${ic('clock')} Hour by hour</h3><span class="tiny muted">tap a bar</span></div>
         <div class="fig"><svg id="strip" role="img" aria-label="Hunt score for each hour"></svg></div>
         <div class="legend"><span><i class="sw" style="background:var(--brassbg)"></i>Best window</span><span><i class="sw" style="background:var(--green2)"></i>Legal light</span><span><i class="sw" style="background:var(--line)"></i>Not legal ${q('legal')}</span><span><i class="sw" style="background:var(--blaze)"></i>Now</span></div>
@@ -65,7 +97,7 @@ Screens.forecast = { label:'Forecast',
   bind(){
     const bk=$('[data-bk]'); if (bk) bk.onclick=()=>{ Backup.download(); go(); };
     const bs=$('[data-bksnooze]'); if (bs) bs.onclick=()=>{ S.backupSnooze=Date.now()+3*DAY; Store.save(); go(); };
-    $$('[data-day]').forEach(b=>b.onclick=()=>{ UIx.dayOff=+b.dataset.day; UIx.hour=null; go(); });
+    $$('[data-day]').forEach(b=>b.onclick=()=>{ const fromList=!!b.closest('#weekcard'); UIx.dayOff=+b.dataset.day; UIx.hour=null; go(); if (fromList) window.scrollTo({top:0,behavior:calm()?'auto':'smooth'}); });
     $$('[data-mw]').forEach(el=>el.onchange=()=>{ S.manualWx[el.dataset.mw]= el.type==='number'?+el.value:el.value; Store.save(); go(); });
     const rt=$('[data-retry]'); if (rt) rt.onclick=async()=>{ rt.textContent='Trying…'; await Weather.load(true); go(); };
     const s=$('#strip'), F=UIx.F; if (!s) return;

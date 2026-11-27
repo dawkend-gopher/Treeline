@@ -93,3 +93,13 @@ body.night .top{display:none}
 .leaflet-container{font-family:"Source Sans 3",sans-serif}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
 @media(max-width:600px){.verdict{grid-template-columns:1fr}.badge-score{display:flex;align-items:center;gap:12px;text-align:left;justify-self:start}.badge-score .num{font-size:40px}}
 @media(prefers-reduced-motion:reduce){.tg,.holes,.meter i{transition:none!important}.pop{animation:none}}
+
+/* This week list */
+.weeklist{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.weekrow{display:grid;grid-template-columns:30px 1fr 92px;gap:10px;align-items:center;text-align:left;width:100%;min-height:62px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:inherit;cursor:pointer}
+.weekrow.cur{border:2px solid var(--green2)}
+.weekrow.best{background:color-mix(in srgb,var(--brassbg) 14%,var(--panel))}
+.wk-l{display:flex;flex-direction:column;gap:2px;min-width:0}
+.wk-s{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.wk-bar{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.wk-bar i{display:block;height:100%;border-radius:4px}

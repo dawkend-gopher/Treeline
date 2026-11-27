@@ -1,6 +1,7 @@
 /* Treeline offline helper. Bump VERSION whenever you upload a new index.html. */
-const VERSION = 'treeline-c2';
-const SHELL = ['./', './index.html', './ammo.json', './manifest.json', './icon-192.png', './icon-512.png',
+const VERSION = 'treeline-d1';
+const SHELL = ['./', './index.html', './css/app.css', './js/config.js', './js/core.js', './js/util.js', './js/data.js', './js/draw.js', './js/ui.js', './js/screens/_shared.js', './js/screens/forecast.js', './js/screens/locker.js', './js/screens/range.js', './js/screens/zero.js', './js/screens/stands.js', './js/screens/journal.js', './js/screens/stand.js', './js/screens/setup.js', './js/main.js',
+  './ammo.json', './manifest.json', './icon-192.png', './icon-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'];
 const TILE_HOSTS = ['server.arcgisonline.com', 'tile.opentopomap.org', 'tile.openstreetmap.org'];
